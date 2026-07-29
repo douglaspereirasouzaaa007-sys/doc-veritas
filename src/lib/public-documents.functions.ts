@@ -31,5 +31,5 @@ export const getPublicDocument = createServerFn({ method: "GET" })
       .eq("id", row.id);
 
     const { id: _id, views_count: _v, ...rest } = row;
-    return { document: { ...rest, metadata: (rest.metadata ?? {}) as Record<string, unknown> } };
+    return { document: { ...rest, metadata: (rest.metadata ?? {}) as Record<string, string | number | boolean | null> } };
   });

@@ -78,5 +78,5 @@ export type PublicDocument = {
   leave_end_date: string | null;
   leave_days: number | null;
   issued_at: string;
-  metadata: Record<string, unknown>;
+  metadata: Record<string, string | number | boolean | null>;
 };
