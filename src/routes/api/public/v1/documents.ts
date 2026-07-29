@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   documentInputSchema,
   generateDocumentCode,
-  type DOCUMENT_TYPES,
+  DOCUMENT_TYPES,
 } from "@/lib/documents.shared";
 import { authenticateApiKey, CORS_HEADERS, json } from "@/lib/api-keys.server";
 
