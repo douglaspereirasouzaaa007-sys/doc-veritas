@@ -10,6 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as VerificarRouteImport } from './routes/verificar'
+import { Route as DCodeRouteImport } from './routes/d.$code'
 import { Route as ApiPublicV1DocumentsRouteImport } from './routes/api/public/v1/documents'
 import { Route as ApiPublicV1DocumentsCodeRouteImport } from './routes/api/public/v1/documents.$code'
 import { Route as ApiPublicV1QrcodeCodeRouteImport } from './routes/api/public/v1/qrcode.$code'
@@ -17,6 +20,21 @@ import { Route as ApiPublicV1QrcodeCodeRouteImport } from './routes/api/public/v
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerificarRoute = VerificarRouteImport.update({
+  id: '/verificar',
+  path: '/verificar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DCodeRoute = DCodeRouteImport.update({
+  id: '/d/$code',
+  path: '/d/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicV1DocumentsRoute = ApiPublicV1DocumentsRouteImport.update({
@@ -38,12 +56,18 @@ const ApiPublicV1QrcodeCodeRoute = ApiPublicV1QrcodeCodeRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/verificar': typeof VerificarRoute
+  '/d/$code': typeof DCodeRoute
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
   '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/verificar': typeof VerificarRoute
+  '/d/$code': typeof DCodeRoute
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
   '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
@@ -51,6 +75,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/verificar': typeof VerificarRoute
+  '/d/$code': typeof DCodeRoute
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
   '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
@@ -59,18 +86,27 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
+    | '/verificar'
+    | '/d/$code'
     | '/api/public/v1/documents'
     | '/api/public/v1/documents/$code'
     | '/api/public/v1/qrcode/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
+    | '/verificar'
+    | '/d/$code'
     | '/api/public/v1/documents'
     | '/api/public/v1/documents/$code'
     | '/api/public/v1/qrcode/$code'
   id:
     | '__root__'
     | '/'
+    | '/auth'
+    | '/verificar'
+    | '/d/$code'
     | '/api/public/v1/documents'
     | '/api/public/v1/documents/$code'
     | '/api/public/v1/qrcode/$code'
@@ -78,6 +114,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
+  VerificarRoute: typeof VerificarRoute
+  DCodeRoute: typeof DCodeRoute
   ApiPublicV1DocumentsRoute: typeof ApiPublicV1DocumentsRouteWithChildren
   ApiPublicV1QrcodeCodeRoute: typeof ApiPublicV1QrcodeCodeRoute
 }
@@ -89,6 +128,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verificar': {
+      id: '/verificar'
+      path: '/verificar'
+      fullPath: '/verificar'
+      preLoaderRoute: typeof VerificarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/d/$code': {
+      id: '/d/$code'
+      path: '/d/$code'
+      fullPath: '/d/$code'
+      preLoaderRoute: typeof DCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/v1/documents': {
@@ -128,6 +188,9 @@ const ApiPublicV1DocumentsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
+  VerificarRoute: VerificarRoute,
+  DCodeRoute: DCodeRoute,
   ApiPublicV1DocumentsRoute: ApiPublicV1DocumentsRouteWithChildren,
   ApiPublicV1QrcodeCodeRoute: ApiPublicV1QrcodeCodeRoute,
 }
