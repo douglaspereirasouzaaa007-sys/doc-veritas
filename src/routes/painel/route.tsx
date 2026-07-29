@@ -9,13 +9,14 @@ export const Route = createFileRoute("/painel")({
   component: PainelLayout,
 });
 
-const nav = [
+const nav: { to: string; label: string; icon: typeof Home; exact?: boolean }[] = [
   { to: "/painel", label: "Visão geral", icon: Home, exact: true },
   { to: "/painel/documentos", label: "Documentos", icon: FileText },
   { to: "/painel/estabelecimentos", label: "Estabelecimentos", icon: Building2 },
   { to: "/painel/api", label: "API e chaves", icon: KeyRound },
   { to: "/painel/verificacoes", label: "Verificações", icon: ShieldCheck },
-] as const;
+];
+
 
 function PainelLayout() {
   const navigate = useNavigate();
