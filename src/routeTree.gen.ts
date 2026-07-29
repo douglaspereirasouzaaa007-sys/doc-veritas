@@ -16,6 +16,8 @@ import { Route as VerificarRouteImport } from './routes/verificar'
 import { Route as DCodeRouteImport } from './routes/d.$code'
 import { Route as PainelIndexRouteImport } from './routes/painel/index'
 import { Route as PainelDocumentosIndexRouteImport } from './routes/painel/documentos/index'
+import { Route as PainelDocumentosIdRouteImport } from './routes/painel/documentos/$id'
+import { Route as PainelDocumentosNovoRouteImport } from './routes/painel/documentos/novo'
 import { Route as ApiPublicV1DocumentsRouteImport } from './routes/api/public/v1/documents'
 import { Route as ApiPublicV1DocumentsCodeRouteImport } from './routes/api/public/v1/documents.$code'
 import { Route as ApiPublicV1QrcodeCodeRouteImport } from './routes/api/public/v1/qrcode.$code'
@@ -55,6 +57,16 @@ const PainelDocumentosIndexRoute = PainelDocumentosIndexRouteImport.update({
   path: '/documentos/',
   getParentRoute: () => PainelRouteRoute,
 } as any)
+const PainelDocumentosIdRoute = PainelDocumentosIdRouteImport.update({
+  id: '/documentos/$id',
+  path: '/documentos/$id',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
+const PainelDocumentosNovoRoute = PainelDocumentosNovoRouteImport.update({
+  id: '/documentos/novo',
+  path: '/documentos/novo',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
 const ApiPublicV1DocumentsRoute = ApiPublicV1DocumentsRouteImport.update({
   id: '/api/public/v1/documents',
   path: '/api/public/v1/documents',
@@ -79,6 +91,8 @@ export interface FileRoutesByFullPath {
   '/verificar': typeof VerificarRoute
   '/d/$code': typeof DCodeRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/documentos/$id': typeof PainelDocumentosIdRoute
+  '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
   '/painel/documentos/': typeof PainelDocumentosIndexRoute
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
@@ -90,6 +104,8 @@ export interface FileRoutesByTo {
   '/verificar': typeof VerificarRoute
   '/d/$code': typeof DCodeRoute
   '/painel': typeof PainelIndexRoute
+  '/painel/documentos/$id': typeof PainelDocumentosIdRoute
+  '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
   '/painel/documentos': typeof PainelDocumentosIndexRoute
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
@@ -103,6 +119,8 @@ export interface FileRoutesById {
   '/verificar': typeof VerificarRoute
   '/d/$code': typeof DCodeRoute
   '/painel/': typeof PainelIndexRoute
+  '/painel/documentos/$id': typeof PainelDocumentosIdRoute
+  '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
   '/painel/documentos/': typeof PainelDocumentosIndexRoute
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
@@ -117,6 +135,8 @@ export interface FileRouteTypes {
     | '/verificar'
     | '/d/$code'
     | '/painel/'
+    | '/painel/documentos/$id'
+    | '/painel/documentos/novo'
     | '/painel/documentos/'
     | '/api/public/v1/documents'
     | '/api/public/v1/documents/$code'
@@ -128,6 +148,8 @@ export interface FileRouteTypes {
     | '/verificar'
     | '/d/$code'
     | '/painel'
+    | '/painel/documentos/$id'
+    | '/painel/documentos/novo'
     | '/painel/documentos'
     | '/api/public/v1/documents'
     | '/api/public/v1/documents/$code'
@@ -140,6 +162,8 @@ export interface FileRouteTypes {
     | '/verificar'
     | '/d/$code'
     | '/painel/'
+    | '/painel/documentos/$id'
+    | '/painel/documentos/novo'
     | '/painel/documentos/'
     | '/api/public/v1/documents'
     | '/api/public/v1/documents/$code'
@@ -207,6 +231,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelDocumentosIndexRouteImport
       parentRoute: typeof PainelRouteRoute
     }
+    '/painel/documentos/$id': {
+      id: '/painel/documentos/$id'
+      path: '/documentos/$id'
+      fullPath: '/painel/documentos/$id'
+      preLoaderRoute: typeof PainelDocumentosIdRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
+    '/painel/documentos/novo': {
+      id: '/painel/documentos/novo'
+      path: '/documentos/novo'
+      fullPath: '/painel/documentos/novo'
+      preLoaderRoute: typeof PainelDocumentosNovoRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
     '/api/public/v1/documents': {
       id: '/api/public/v1/documents'
       path: '/api/public/v1/documents'
@@ -233,11 +271,15 @@ declare module '@tanstack/react-router' {
 
 interface PainelRouteRouteChildren {
   PainelIndexRoute: typeof PainelIndexRoute
+  PainelDocumentosIdRoute: typeof PainelDocumentosIdRoute
+  PainelDocumentosNovoRoute: typeof PainelDocumentosNovoRoute
   PainelDocumentosIndexRoute: typeof PainelDocumentosIndexRoute
 }
 
 const PainelRouteRouteChildren: PainelRouteRouteChildren = {
   PainelIndexRoute: PainelIndexRoute,
+  PainelDocumentosIdRoute: PainelDocumentosIdRoute,
+  PainelDocumentosNovoRoute: PainelDocumentosNovoRoute,
   PainelDocumentosIndexRoute: PainelDocumentosIndexRoute,
 }
 
