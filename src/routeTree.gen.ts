@@ -10,33 +10,57 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiPublicV1DocumentsRouteImport } from './routes/api/public/v1/documents'
+import { Route as ApiPublicV1DocumentsCodeRouteImport } from './routes/api/public/v1/documents.$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1DocumentsRoute = ApiPublicV1DocumentsRouteImport.update({
+  id: '/api/public/v1/documents',
+  path: '/api/public/v1/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1DocumentsCodeRoute =
+  ApiPublicV1DocumentsCodeRouteImport.update({
+    id: '/$code',
+    path: '/$code',
+    getParentRoute: () => ApiPublicV1DocumentsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
+  '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
+  '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
+  '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/public/v1/documents' | '/api/public/v1/documents/$code'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/public/v1/documents' | '/api/public/v1/documents/$code'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/public/v1/documents'
+    | '/api/public/v1/documents/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiPublicV1DocumentsRoute: typeof ApiPublicV1DocumentsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +72,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/v1/documents': {
+      id: '/api/public/v1/documents'
+      path: '/api/public/v1/documents'
+      fullPath: '/api/public/v1/documents'
+      preLoaderRoute: typeof ApiPublicV1DocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/documents/$code': {
+      id: '/api/public/v1/documents/$code'
+      path: '/$code'
+      fullPath: '/api/public/v1/documents/$code'
+      preLoaderRoute: typeof ApiPublicV1DocumentsCodeRouteImport
+      parentRoute: typeof ApiPublicV1DocumentsRoute
+    }
   }
 }
 
+interface ApiPublicV1DocumentsRouteChildren {
+  ApiPublicV1DocumentsCodeRoute: typeof ApiPublicV1DocumentsCodeRoute
+}
+
+const ApiPublicV1DocumentsRouteChildren: ApiPublicV1DocumentsRouteChildren = {
+  ApiPublicV1DocumentsCodeRoute: ApiPublicV1DocumentsCodeRoute,
+}
+
+const ApiPublicV1DocumentsRouteWithChildren =
+  ApiPublicV1DocumentsRoute._addFileChildren(ApiPublicV1DocumentsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiPublicV1DocumentsRoute: ApiPublicV1DocumentsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

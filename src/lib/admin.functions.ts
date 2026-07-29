@@ -5,6 +5,7 @@ import {
   documentInputSchema,
   generateDocumentCode,
   DOCUMENT_STATUSES,
+  DOCUMENT_TYPES,
 } from "./documents.shared";
 
 export const getMe = createServerFn({ method: "GET" })
@@ -92,8 +93,10 @@ export const listDocuments = createServerFn({ method: "GET" })
         `patient_name.ilike.${term},code.ilike.${term},patient_cpf.ilike.${term},establishment_name.ilike.${term}`,
       );
     }
-    if (data.type && data.type !== "todos") query = query.eq("type", data.type);
-    if (data.status && data.status !== "todos") query = query.eq("status", data.status);
+    if (data.type && data.type !== "todos")
+      query = query.eq("type", data.type as (typeof DOCUMENT_TYPES)[number]);
+    if (data.status && data.status !== "todos")
+      query = query.eq("status", data.status as (typeof DOCUMENT_STATUSES)[number]);
 
     const from = (data.page - 1) * data.pageSize;
     const { data: rows, count, error } = await query.range(from, from + data.pageSize - 1);

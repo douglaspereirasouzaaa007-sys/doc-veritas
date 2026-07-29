@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { documentInputSchema, generateDocumentCode } from "@/lib/documents.shared";
+import {
+  documentInputSchema,
+  generateDocumentCode,
+  type DOCUMENT_TYPES,
+} from "@/lib/documents.shared";
 import { authenticateApiKey, CORS_HEADERS, json } from "@/lib/api-keys.server";
 
 const PUBLIC_FIELDS =
@@ -25,7 +29,7 @@ export const Route = createFileRoute("/api/public/v1/documents")({
           .from("documents")
           .select(PUBLIC_FIELDS, { count: "exact" })
           .order("created_at", { ascending: false });
-        if (type) query = query.eq("type", type);
+        if (type) query = query.eq("type", type as (typeof DOCUMENT_TYPES)[number]);
         if (cpf) query = query.eq("patient_cpf", cpf);
 
         const { data, count, error } = await query.range(offset, offset + limit - 1);
