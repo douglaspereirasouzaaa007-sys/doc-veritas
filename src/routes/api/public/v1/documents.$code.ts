@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/public/v1/documents/$code")({
         return json({
           data,
           verification_url: `${origin}/d/${code}`,
-          qrcode_url: `${origin}/api/public/v1/qrcode/${code}.png`,
+          qrcode_url: `${origin}/api/public/v1/qrcode/${code}`,
         });
       },
 

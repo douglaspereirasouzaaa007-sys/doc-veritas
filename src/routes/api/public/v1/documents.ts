@@ -110,7 +110,7 @@ export const Route = createFileRoute("/api/public/v1/documents")({
           {
             data,
             verification_url: `${origin}/d/${data.code}`,
-            qrcode_url: `${origin}/api/public/v1/qrcode/${data.code}.png`,
+            qrcode_url: `${origin}/api/public/v1/qrcode/${data.code}`,
           },
           201,
         );
