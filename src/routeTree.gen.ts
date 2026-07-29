@@ -15,6 +15,7 @@ import { Route as PainelRouteRouteImport } from './routes/painel/route'
 import { Route as VerificarRouteImport } from './routes/verificar'
 import { Route as DCodeRouteImport } from './routes/d.$code'
 import { Route as PainelIndexRouteImport } from './routes/painel/index'
+import { Route as PainelApiRouteImport } from './routes/painel/api'
 import { Route as PainelEstabelecimentosRouteImport } from './routes/painel/estabelecimentos'
 import { Route as PainelVerificacoesRouteImport } from './routes/painel/verificacoes'
 import { Route as PainelDocumentosIndexRouteImport } from './routes/painel/documentos/index'
@@ -52,6 +53,11 @@ const DCodeRoute = DCodeRouteImport.update({
 const PainelIndexRoute = PainelIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
+const PainelApiRoute = PainelApiRouteImport.update({
+  id: '/api',
+  path: '/api',
   getParentRoute: () => PainelRouteRoute,
 } as any)
 const PainelEstabelecimentosRoute = PainelEstabelecimentosRouteImport.update({
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/verificar': typeof VerificarRoute
   '/d/$code': typeof DCodeRoute
+  '/painel/api': typeof PainelApiRoute
   '/painel/estabelecimentos': typeof PainelEstabelecimentosRoute
   '/painel/verificacoes': typeof PainelVerificacoesRoute
   '/painel/': typeof PainelIndexRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/verificar': typeof VerificarRoute
   '/d/$code': typeof DCodeRoute
+  '/painel/api': typeof PainelApiRoute
   '/painel/estabelecimentos': typeof PainelEstabelecimentosRoute
   '/painel/verificacoes': typeof PainelVerificacoesRoute
   '/painel': typeof PainelIndexRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/verificar': typeof VerificarRoute
   '/d/$code': typeof DCodeRoute
+  '/painel/api': typeof PainelApiRoute
   '/painel/estabelecimentos': typeof PainelEstabelecimentosRoute
   '/painel/verificacoes': typeof PainelVerificacoesRoute
   '/painel/': typeof PainelIndexRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/verificar'
     | '/d/$code'
+    | '/painel/api'
     | '/painel/estabelecimentos'
     | '/painel/verificacoes'
     | '/painel/'
@@ -167,6 +177,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/verificar'
     | '/d/$code'
+    | '/painel/api'
     | '/painel/estabelecimentos'
     | '/painel/verificacoes'
     | '/painel'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/verificar'
     | '/d/$code'
+    | '/painel/api'
     | '/painel/estabelecimentos'
     | '/painel/verificacoes'
     | '/painel/'
@@ -248,6 +260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelIndexRouteImport
       parentRoute: typeof PainelRouteRoute
     }
+    '/painel/api': {
+      id: '/painel/api'
+      path: '/api'
+      fullPath: '/painel/api'
+      preLoaderRoute: typeof PainelApiRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
     '/painel/estabelecimentos': {
       id: '/painel/estabelecimentos'
       path: '/estabelecimentos'
@@ -308,6 +327,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface PainelRouteRouteChildren {
+  PainelApiRoute: typeof PainelApiRoute
   PainelEstabelecimentosRoute: typeof PainelEstabelecimentosRoute
   PainelVerificacoesRoute: typeof PainelVerificacoesRoute
   PainelIndexRoute: typeof PainelIndexRoute
@@ -317,6 +337,7 @@ interface PainelRouteRouteChildren {
 }
 
 const PainelRouteRouteChildren: PainelRouteRouteChildren = {
+  PainelApiRoute: PainelApiRoute,
   PainelEstabelecimentosRoute: PainelEstabelecimentosRoute,
   PainelVerificacoesRoute: PainelVerificacoesRoute,
   PainelIndexRoute: PainelIndexRoute,
