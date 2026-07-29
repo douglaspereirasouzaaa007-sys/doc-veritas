@@ -15,6 +15,8 @@ import { Route as PainelRouteRouteImport } from './routes/painel/route'
 import { Route as VerificarRouteImport } from './routes/verificar'
 import { Route as DCodeRouteImport } from './routes/d.$code'
 import { Route as PainelIndexRouteImport } from './routes/painel/index'
+import { Route as PainelEstabelecimentosRouteImport } from './routes/painel/estabelecimentos'
+import { Route as PainelVerificacoesRouteImport } from './routes/painel/verificacoes'
 import { Route as PainelDocumentosIndexRouteImport } from './routes/painel/documentos/index'
 import { Route as PainelDocumentosIdRouteImport } from './routes/painel/documentos/$id'
 import { Route as PainelDocumentosNovoRouteImport } from './routes/painel/documentos/novo'
@@ -50,6 +52,16 @@ const DCodeRoute = DCodeRouteImport.update({
 const PainelIndexRoute = PainelIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
+const PainelEstabelecimentosRoute = PainelEstabelecimentosRouteImport.update({
+  id: '/estabelecimentos',
+  path: '/estabelecimentos',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
+const PainelVerificacoesRoute = PainelVerificacoesRouteImport.update({
+  id: '/verificacoes',
+  path: '/verificacoes',
   getParentRoute: () => PainelRouteRoute,
 } as any)
 const PainelDocumentosIndexRoute = PainelDocumentosIndexRouteImport.update({
@@ -90,6 +102,8 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/verificar': typeof VerificarRoute
   '/d/$code': typeof DCodeRoute
+  '/painel/estabelecimentos': typeof PainelEstabelecimentosRoute
+  '/painel/verificacoes': typeof PainelVerificacoesRoute
   '/painel/': typeof PainelIndexRoute
   '/painel/documentos/$id': typeof PainelDocumentosIdRoute
   '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
@@ -103,6 +117,8 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/verificar': typeof VerificarRoute
   '/d/$code': typeof DCodeRoute
+  '/painel/estabelecimentos': typeof PainelEstabelecimentosRoute
+  '/painel/verificacoes': typeof PainelVerificacoesRoute
   '/painel': typeof PainelIndexRoute
   '/painel/documentos/$id': typeof PainelDocumentosIdRoute
   '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
@@ -118,6 +134,8 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/verificar': typeof VerificarRoute
   '/d/$code': typeof DCodeRoute
+  '/painel/estabelecimentos': typeof PainelEstabelecimentosRoute
+  '/painel/verificacoes': typeof PainelVerificacoesRoute
   '/painel/': typeof PainelIndexRoute
   '/painel/documentos/$id': typeof PainelDocumentosIdRoute
   '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
@@ -134,6 +152,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/verificar'
     | '/d/$code'
+    | '/painel/estabelecimentos'
+    | '/painel/verificacoes'
     | '/painel/'
     | '/painel/documentos/$id'
     | '/painel/documentos/novo'
@@ -147,6 +167,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/verificar'
     | '/d/$code'
+    | '/painel/estabelecimentos'
+    | '/painel/verificacoes'
     | '/painel'
     | '/painel/documentos/$id'
     | '/painel/documentos/novo'
@@ -161,6 +183,8 @@ export interface FileRouteTypes {
     | '/auth'
     | '/verificar'
     | '/d/$code'
+    | '/painel/estabelecimentos'
+    | '/painel/verificacoes'
     | '/painel/'
     | '/painel/documentos/$id'
     | '/painel/documentos/novo'
@@ -224,6 +248,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelIndexRouteImport
       parentRoute: typeof PainelRouteRoute
     }
+    '/painel/estabelecimentos': {
+      id: '/painel/estabelecimentos'
+      path: '/estabelecimentos'
+      fullPath: '/painel/estabelecimentos'
+      preLoaderRoute: typeof PainelEstabelecimentosRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
+    '/painel/verificacoes': {
+      id: '/painel/verificacoes'
+      path: '/verificacoes'
+      fullPath: '/painel/verificacoes'
+      preLoaderRoute: typeof PainelVerificacoesRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
     '/painel/documentos/': {
       id: '/painel/documentos/'
       path: '/documentos'
@@ -270,6 +308,8 @@ declare module '@tanstack/react-router' {
 }
 
 interface PainelRouteRouteChildren {
+  PainelEstabelecimentosRoute: typeof PainelEstabelecimentosRoute
+  PainelVerificacoesRoute: typeof PainelVerificacoesRoute
   PainelIndexRoute: typeof PainelIndexRoute
   PainelDocumentosIdRoute: typeof PainelDocumentosIdRoute
   PainelDocumentosNovoRoute: typeof PainelDocumentosNovoRoute
@@ -277,6 +317,8 @@ interface PainelRouteRouteChildren {
 }
 
 const PainelRouteRouteChildren: PainelRouteRouteChildren = {
+  PainelEstabelecimentosRoute: PainelEstabelecimentosRoute,
+  PainelVerificacoesRoute: PainelVerificacoesRoute,
   PainelIndexRoute: PainelIndexRoute,
   PainelDocumentosIdRoute: PainelDocumentosIdRoute,
   PainelDocumentosNovoRoute: PainelDocumentosNovoRoute,
