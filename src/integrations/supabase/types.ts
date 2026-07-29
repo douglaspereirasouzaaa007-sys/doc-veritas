@@ -14,16 +14,294 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      api_keys: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string | null
+          id: string
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          requests_count: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          requests_count?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          requests_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          api_key_id: string | null
+          body_text: string | null
+          cid: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          establishment_address: string | null
+          establishment_id: string | null
+          establishment_name: string | null
+          id: string
+          issued_at: string
+          leave_days: number | null
+          leave_end_date: string | null
+          leave_start_date: string | null
+          metadata: Json
+          patient_birth_date: string | null
+          patient_cpf: string | null
+          patient_name: string
+          professional_council: string | null
+          professional_council_number: string | null
+          professional_name: string | null
+          professional_specialty: string | null
+          status: Database["public"]["Enums"]["document_status"]
+          type: Database["public"]["Enums"]["document_type"]
+          updated_at: string
+          views_count: number
+        }
+        Insert: {
+          api_key_id?: string | null
+          body_text?: string | null
+          cid?: string | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          establishment_address?: string | null
+          establishment_id?: string | null
+          establishment_name?: string | null
+          id?: string
+          issued_at?: string
+          leave_days?: number | null
+          leave_end_date?: string | null
+          leave_start_date?: string | null
+          metadata?: Json
+          patient_birth_date?: string | null
+          patient_cpf?: string | null
+          patient_name: string
+          professional_council?: string | null
+          professional_council_number?: string | null
+          professional_name?: string | null
+          professional_specialty?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          type: Database["public"]["Enums"]["document_type"]
+          updated_at?: string
+          views_count?: number
+        }
+        Update: {
+          api_key_id?: string | null
+          body_text?: string | null
+          cid?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          establishment_address?: string | null
+          establishment_id?: string | null
+          establishment_name?: string | null
+          id?: string
+          issued_at?: string
+          leave_days?: number | null
+          leave_end_date?: string | null
+          leave_start_date?: string | null
+          metadata?: Json
+          patient_birth_date?: string | null
+          patient_cpf?: string | null
+          patient_name?: string
+          professional_council?: string | null
+          professional_council_number?: string | null
+          professional_name?: string | null
+          professional_specialty?: string | null
+          status?: Database["public"]["Enums"]["document_status"]
+          type?: Database["public"]["Enums"]["document_type"]
+          updated_at?: string
+          views_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_establishment_id_fkey"
+            columns: ["establishment_id"]
+            isOneToOne: false
+            referencedRelation: "establishments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      establishments: {
+        Row: {
+          active: boolean
+          address_city: string | null
+          address_complement: string | null
+          address_district: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_zip: string | null
+          cnpj: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          address_city?: string | null
+          address_complement?: string | null
+          address_district?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          cnpj?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          address_city?: string | null
+          address_complement?: string | null
+          address_district?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_zip?: string | null
+          cnpj?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      verifications: {
+        Row: {
+          code: string
+          created_at: string
+          document_id: string | null
+          found: boolean
+          id: string
+          ip: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          document_id?: string | null
+          found?: boolean
+          id?: string
+          ip?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          document_id?: string | null
+          found?: boolean
+          id?: string
+          ip?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verifications_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      document_status: "valido" | "revogado" | "expirado"
+      document_type: "atestado" | "receita" | "laudo" | "exame" | "declaracao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +428,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      document_status: ["valido", "revogado", "expirado"],
+      document_type: ["atestado", "receita", "laudo", "exame", "declaracao"],
+    },
   },
 } as const
