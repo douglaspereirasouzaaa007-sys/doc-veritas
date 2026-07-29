@@ -10,33 +10,210 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as PainelRouteRouteImport } from './routes/painel/route'
+import { Route as VerificarRouteImport } from './routes/verificar'
+import { Route as DCodeRouteImport } from './routes/d.$code'
+import { Route as PainelIndexRouteImport } from './routes/painel/index'
+import { Route as PainelApiRouteImport } from './routes/painel/api'
+import { Route as PainelEstabelecimentosRouteImport } from './routes/painel/estabelecimentos'
+import { Route as PainelVerificacoesRouteImport } from './routes/painel/verificacoes'
+import { Route as PainelDocumentosIndexRouteImport } from './routes/painel/documentos/index'
+import { Route as PainelDocumentosIdRouteImport } from './routes/painel/documentos/$id'
+import { Route as PainelDocumentosNovoRouteImport } from './routes/painel/documentos/novo'
+import { Route as ApiPublicV1DocumentsRouteImport } from './routes/api/public/v1/documents'
+import { Route as ApiPublicV1DocumentsCodeRouteImport } from './routes/api/public/v1/documents.$code'
+import { Route as ApiPublicV1QrcodeCodeRouteImport } from './routes/api/public/v1/qrcode.$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PainelRouteRoute = PainelRouteRouteImport.update({
+  id: '/painel',
+  path: '/painel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerificarRoute = VerificarRouteImport.update({
+  id: '/verificar',
+  path: '/verificar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DCodeRoute = DCodeRouteImport.update({
+  id: '/d/$code',
+  path: '/d/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PainelIndexRoute = PainelIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
+const PainelApiRoute = PainelApiRouteImport.update({
+  id: '/api',
+  path: '/api',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
+const PainelEstabelecimentosRoute = PainelEstabelecimentosRouteImport.update({
+  id: '/estabelecimentos',
+  path: '/estabelecimentos',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
+const PainelVerificacoesRoute = PainelVerificacoesRouteImport.update({
+  id: '/verificacoes',
+  path: '/verificacoes',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
+const PainelDocumentosIndexRoute = PainelDocumentosIndexRouteImport.update({
+  id: '/documentos/',
+  path: '/documentos/',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
+const PainelDocumentosIdRoute = PainelDocumentosIdRouteImport.update({
+  id: '/documentos/$id',
+  path: '/documentos/$id',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
+const PainelDocumentosNovoRoute = PainelDocumentosNovoRouteImport.update({
+  id: '/documentos/novo',
+  path: '/documentos/novo',
+  getParentRoute: () => PainelRouteRoute,
+} as any)
+const ApiPublicV1DocumentsRoute = ApiPublicV1DocumentsRouteImport.update({
+  id: '/api/public/v1/documents',
+  path: '/api/public/v1/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1DocumentsCodeRoute =
+  ApiPublicV1DocumentsCodeRouteImport.update({
+    id: '/$code',
+    path: '/$code',
+    getParentRoute: () => ApiPublicV1DocumentsRoute,
+  } as any)
+const ApiPublicV1QrcodeCodeRoute = ApiPublicV1QrcodeCodeRouteImport.update({
+  id: '/api/public/v1/qrcode/$code',
+  path: '/api/public/v1/qrcode/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/painel': typeof PainelRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/verificar': typeof VerificarRoute
+  '/d/$code': typeof DCodeRoute
+  '/painel/api': typeof PainelApiRoute
+  '/painel/estabelecimentos': typeof PainelEstabelecimentosRoute
+  '/painel/verificacoes': typeof PainelVerificacoesRoute
+  '/painel/': typeof PainelIndexRoute
+  '/painel/documentos/$id': typeof PainelDocumentosIdRoute
+  '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
+  '/painel/documentos/': typeof PainelDocumentosIndexRoute
+  '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
+  '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
+  '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/verificar': typeof VerificarRoute
+  '/d/$code': typeof DCodeRoute
+  '/painel/api': typeof PainelApiRoute
+  '/painel/estabelecimentos': typeof PainelEstabelecimentosRoute
+  '/painel/verificacoes': typeof PainelVerificacoesRoute
+  '/painel': typeof PainelIndexRoute
+  '/painel/documentos/$id': typeof PainelDocumentosIdRoute
+  '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
+  '/painel/documentos': typeof PainelDocumentosIndexRoute
+  '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
+  '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
+  '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/painel': typeof PainelRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/verificar': typeof VerificarRoute
+  '/d/$code': typeof DCodeRoute
+  '/painel/api': typeof PainelApiRoute
+  '/painel/estabelecimentos': typeof PainelEstabelecimentosRoute
+  '/painel/verificacoes': typeof PainelVerificacoesRoute
+  '/painel/': typeof PainelIndexRoute
+  '/painel/documentos/$id': typeof PainelDocumentosIdRoute
+  '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
+  '/painel/documentos/': typeof PainelDocumentosIndexRoute
+  '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
+  '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
+  '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/painel'
+    | '/auth'
+    | '/verificar'
+    | '/d/$code'
+    | '/painel/api'
+    | '/painel/estabelecimentos'
+    | '/painel/verificacoes'
+    | '/painel/'
+    | '/painel/documentos/$id'
+    | '/painel/documentos/novo'
+    | '/painel/documentos/'
+    | '/api/public/v1/documents'
+    | '/api/public/v1/documents/$code'
+    | '/api/public/v1/qrcode/$code'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/verificar'
+    | '/d/$code'
+    | '/painel/api'
+    | '/painel/estabelecimentos'
+    | '/painel/verificacoes'
+    | '/painel'
+    | '/painel/documentos/$id'
+    | '/painel/documentos/novo'
+    | '/painel/documentos'
+    | '/api/public/v1/documents'
+    | '/api/public/v1/documents/$code'
+    | '/api/public/v1/qrcode/$code'
+  id:
+    | '__root__'
+    | '/'
+    | '/painel'
+    | '/auth'
+    | '/verificar'
+    | '/d/$code'
+    | '/painel/api'
+    | '/painel/estabelecimentos'
+    | '/painel/verificacoes'
+    | '/painel/'
+    | '/painel/documentos/$id'
+    | '/painel/documentos/novo'
+    | '/painel/documentos/'
+    | '/api/public/v1/documents'
+    | '/api/public/v1/documents/$code'
+    | '/api/public/v1/qrcode/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PainelRouteRoute: typeof PainelRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  VerificarRoute: typeof VerificarRoute
+  DCodeRoute: typeof DCodeRoute
+  ApiPublicV1DocumentsRoute: typeof ApiPublicV1DocumentsRouteWithChildren
+  ApiPublicV1QrcodeCodeRoute: typeof ApiPublicV1QrcodeCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +225,151 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/painel': {
+      id: '/painel'
+      path: '/painel'
+      fullPath: '/painel'
+      preLoaderRoute: typeof PainelRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verificar': {
+      id: '/verificar'
+      path: '/verificar'
+      fullPath: '/verificar'
+      preLoaderRoute: typeof VerificarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/d/$code': {
+      id: '/d/$code'
+      path: '/d/$code'
+      fullPath: '/d/$code'
+      preLoaderRoute: typeof DCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/painel/': {
+      id: '/painel/'
+      path: '/'
+      fullPath: '/painel/'
+      preLoaderRoute: typeof PainelIndexRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
+    '/painel/api': {
+      id: '/painel/api'
+      path: '/api'
+      fullPath: '/painel/api'
+      preLoaderRoute: typeof PainelApiRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
+    '/painel/estabelecimentos': {
+      id: '/painel/estabelecimentos'
+      path: '/estabelecimentos'
+      fullPath: '/painel/estabelecimentos'
+      preLoaderRoute: typeof PainelEstabelecimentosRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
+    '/painel/verificacoes': {
+      id: '/painel/verificacoes'
+      path: '/verificacoes'
+      fullPath: '/painel/verificacoes'
+      preLoaderRoute: typeof PainelVerificacoesRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
+    '/painel/documentos/': {
+      id: '/painel/documentos/'
+      path: '/documentos'
+      fullPath: '/painel/documentos/'
+      preLoaderRoute: typeof PainelDocumentosIndexRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
+    '/painel/documentos/$id': {
+      id: '/painel/documentos/$id'
+      path: '/documentos/$id'
+      fullPath: '/painel/documentos/$id'
+      preLoaderRoute: typeof PainelDocumentosIdRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
+    '/painel/documentos/novo': {
+      id: '/painel/documentos/novo'
+      path: '/documentos/novo'
+      fullPath: '/painel/documentos/novo'
+      preLoaderRoute: typeof PainelDocumentosNovoRouteImport
+      parentRoute: typeof PainelRouteRoute
+    }
+    '/api/public/v1/documents': {
+      id: '/api/public/v1/documents'
+      path: '/api/public/v1/documents'
+      fullPath: '/api/public/v1/documents'
+      preLoaderRoute: typeof ApiPublicV1DocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/documents/$code': {
+      id: '/api/public/v1/documents/$code'
+      path: '/$code'
+      fullPath: '/api/public/v1/documents/$code'
+      preLoaderRoute: typeof ApiPublicV1DocumentsCodeRouteImport
+      parentRoute: typeof ApiPublicV1DocumentsRoute
+    }
+    '/api/public/v1/qrcode/$code': {
+      id: '/api/public/v1/qrcode/$code'
+      path: '/api/public/v1/qrcode/$code'
+      fullPath: '/api/public/v1/qrcode/$code'
+      preLoaderRoute: typeof ApiPublicV1QrcodeCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface PainelRouteRouteChildren {
+  PainelApiRoute: typeof PainelApiRoute
+  PainelEstabelecimentosRoute: typeof PainelEstabelecimentosRoute
+  PainelVerificacoesRoute: typeof PainelVerificacoesRoute
+  PainelIndexRoute: typeof PainelIndexRoute
+  PainelDocumentosIdRoute: typeof PainelDocumentosIdRoute
+  PainelDocumentosNovoRoute: typeof PainelDocumentosNovoRoute
+  PainelDocumentosIndexRoute: typeof PainelDocumentosIndexRoute
+}
+
+const PainelRouteRouteChildren: PainelRouteRouteChildren = {
+  PainelApiRoute: PainelApiRoute,
+  PainelEstabelecimentosRoute: PainelEstabelecimentosRoute,
+  PainelVerificacoesRoute: PainelVerificacoesRoute,
+  PainelIndexRoute: PainelIndexRoute,
+  PainelDocumentosIdRoute: PainelDocumentosIdRoute,
+  PainelDocumentosNovoRoute: PainelDocumentosNovoRoute,
+  PainelDocumentosIndexRoute: PainelDocumentosIndexRoute,
+}
+
+const PainelRouteRouteWithChildren = PainelRouteRoute._addFileChildren(
+  PainelRouteRouteChildren,
+)
+
+interface ApiPublicV1DocumentsRouteChildren {
+  ApiPublicV1DocumentsCodeRoute: typeof ApiPublicV1DocumentsCodeRoute
+}
+
+const ApiPublicV1DocumentsRouteChildren: ApiPublicV1DocumentsRouteChildren = {
+  ApiPublicV1DocumentsCodeRoute: ApiPublicV1DocumentsCodeRoute,
+}
+
+const ApiPublicV1DocumentsRouteWithChildren =
+  ApiPublicV1DocumentsRoute._addFileChildren(ApiPublicV1DocumentsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PainelRouteRoute: PainelRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  VerificarRoute: VerificarRoute,
+  DCodeRoute: DCodeRoute,
+  ApiPublicV1DocumentsRoute: ApiPublicV1DocumentsRouteWithChildren,
+  ApiPublicV1QrcodeCodeRoute: ApiPublicV1QrcodeCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
