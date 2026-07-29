@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPublicV1DocumentsRouteImport } from './routes/api/public/v1/documents'
 import { Route as ApiPublicV1DocumentsCodeRouteImport } from './routes/api/public/v1/documents.$code'
+import { Route as ApiPublicV1QrcodeCodeRouteImport } from './routes/api/public/v1/qrcode.$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,38 +30,56 @@ const ApiPublicV1DocumentsCodeRoute =
     path: '/$code',
     getParentRoute: () => ApiPublicV1DocumentsRoute,
   } as any)
+const ApiPublicV1QrcodeCodeRoute = ApiPublicV1QrcodeCodeRouteImport.update({
+  id: '/api/public/v1/qrcode/$code',
+  path: '/api/public/v1/qrcode/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
+  '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
+  '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
+  '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/public/v1/documents' | '/api/public/v1/documents/$code'
+  fullPaths:
+    | '/'
+    | '/api/public/v1/documents'
+    | '/api/public/v1/documents/$code'
+    | '/api/public/v1/qrcode/$code'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/v1/documents' | '/api/public/v1/documents/$code'
+  to:
+    | '/'
+    | '/api/public/v1/documents'
+    | '/api/public/v1/documents/$code'
+    | '/api/public/v1/qrcode/$code'
   id:
     | '__root__'
     | '/'
     | '/api/public/v1/documents'
     | '/api/public/v1/documents/$code'
+    | '/api/public/v1/qrcode/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiPublicV1DocumentsRoute: typeof ApiPublicV1DocumentsRouteWithChildren
+  ApiPublicV1QrcodeCodeRoute: typeof ApiPublicV1QrcodeCodeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -86,6 +105,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1DocumentsCodeRouteImport
       parentRoute: typeof ApiPublicV1DocumentsRoute
     }
+    '/api/public/v1/qrcode/$code': {
+      id: '/api/public/v1/qrcode/$code'
+      path: '/api/public/v1/qrcode/$code'
+      fullPath: '/api/public/v1/qrcode/$code'
+      preLoaderRoute: typeof ApiPublicV1QrcodeCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -103,6 +129,7 @@ const ApiPublicV1DocumentsRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiPublicV1DocumentsRoute: ApiPublicV1DocumentsRouteWithChildren,
+  ApiPublicV1QrcodeCodeRoute: ApiPublicV1QrcodeCodeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
