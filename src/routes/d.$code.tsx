@@ -91,24 +91,34 @@ function DocumentPage() {
 
       <main className="mx-auto max-w-4xl px-4 py-8">
         <div
-          className={`flex items-center gap-3 rounded-xl px-5 py-4 ${
-            valid ? "bg-primary text-primary-foreground" : "bg-destructive text-white"
+          className={`rounded-2xl px-6 py-6 ${
+            valid ? "bg-primary text-primary-foreground" : "bg-destructive text-destructive-foreground"
           }`}
         >
-          {valid ? (
-            <CheckCircle2 className="h-7 w-7 shrink-0" />
-          ) : (
-            <AlertTriangle className="h-7 w-7 shrink-0" />
-          )}
-          <div>
-            <p className="font-display text-lg font-semibold">
-              {valid ? "Documento autêntico" : `Documento ${DOCUMENT_STATUS_LABEL[doc.status]}`}
-            </p>
-            <p className="text-sm opacity-90">
-              {DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type} • Código {doc.code}
-            </p>
+          <div className="flex items-start gap-4">
+            {valid ? (
+              <CheckCircle2 className="h-9 w-9 shrink-0" />
+            ) : (
+              <AlertTriangle className="h-9 w-9 shrink-0" />
+            )}
+            <div>
+              <p className="font-display text-2xl font-semibold">
+                {valid
+                  ? `${DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type} válido${doc.type === "receita" ? "a" : ""}`
+                  : `${DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type} ${DOCUMENT_STATUS_LABEL[doc.status]}`}
+              </p>
+              <p className="mt-1 text-sm opacity-90">
+                {valid
+                  ? "Documento autêntico, emitido eletronicamente e verificado nesta data."
+                  : "Este documento não pode mais ser considerado válido."}
+              </p>
+              <p className="mt-3 inline-flex rounded-full bg-primary-foreground/15 px-3 py-1 font-mono text-xs tracking-widest">
+                {doc.code}
+              </p>
+            </div>
           </div>
         </div>
+
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_260px]">
           <div className="space-y-6">
