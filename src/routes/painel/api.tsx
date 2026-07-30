@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Copy, Trash2 } from "lucide-react";
 import { createApiKey, deleteApiKey, listApiKeys, updateApiKey } from "@/lib/admin.functions";
 import { formatDateTimeBR, formatNumberBR } from "@/lib/br";
+import { PUBLIC_SITE_URL } from "@/lib/site-url";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
