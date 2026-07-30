@@ -78,6 +78,7 @@ export type Database = {
           professional_name: string | null
           professional_specialty: string | null
           status: Database["public"]["Enums"]["document_status"]
+          token: string
           type: Database["public"]["Enums"]["document_type"]
           updated_at: string
           views_count: number
@@ -106,6 +107,7 @@ export type Database = {
           professional_name?: string | null
           professional_specialty?: string | null
           status?: Database["public"]["Enums"]["document_status"]
+          token: string
           type: Database["public"]["Enums"]["document_type"]
           updated_at?: string
           views_count?: number
@@ -134,6 +136,7 @@ export type Database = {
           professional_name?: string | null
           professional_specialty?: string | null
           status?: Database["public"]["Enums"]["document_status"]
+          token?: string
           type?: Database["public"]["Enums"]["document_type"]
           updated_at?: string
           views_count?: number
@@ -290,6 +293,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_document_token: {
+        Args: { _type: Database["public"]["Enums"]["document_type"] }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
