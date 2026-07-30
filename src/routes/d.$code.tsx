@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, CheckCircle2, Printer, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Printer, ShieldCheck, XCircle } from "lucide-react";
 import { getPublicDocument } from "@/lib/public-documents.functions";
 import { Logo } from "@/components/site/Logo";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,9 @@ function DocumentPage() {
 
   const valid = doc.status === "valido";
   const isAtestado = doc.type === "atestado";
+  const feminine = doc.type === "receita" || doc.type === "declaracao";
+  const typeLabel = DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type;
+
 
   return (
     <div className="min-h-screen bg-primary-soft/40 pb-16">
@@ -91,24 +94,36 @@ function DocumentPage() {
 
       <main className="mx-auto max-w-4xl px-4 py-8">
         <div
-          className={`flex items-center gap-3 rounded-xl px-5 py-4 ${
-            valid ? "bg-primary text-primary-foreground" : "bg-destructive text-white"
+          className={`rounded-2xl px-6 py-6 ${
+            valid ? "bg-primary text-primary-foreground" : "bg-destructive text-destructive-foreground"
           }`}
         >
-          {valid ? (
-            <CheckCircle2 className="h-7 w-7 shrink-0" />
-          ) : (
-            <AlertTriangle className="h-7 w-7 shrink-0" />
-          )}
-          <div>
-            <p className="font-display text-lg font-semibold">
-              {valid ? "Documento autêntico" : `Documento ${DOCUMENT_STATUS_LABEL[doc.status]}`}
-            </p>
-            <p className="text-sm opacity-90">
-              {DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type} • Código {doc.code}
-            </p>
+          <div className="flex items-start gap-4">
+            {valid ? (
+              <CheckCircle2 className="h-9 w-9 shrink-0" />
+            ) : (
+              <AlertTriangle className="h-9 w-9 shrink-0" />
+            )}
+            <div>
+              <p className="font-display text-2xl font-semibold">
+                {valid
+                  ? `${typeLabel} ${feminine ? "válida" : "válido"}`
+                  : `${typeLabel} ${DOCUMENT_STATUS_LABEL[doc.status]}`}
+              </p>
+
+
+              <p className="mt-1 text-sm opacity-90">
+                {valid
+                  ? "Documento autêntico, emitido eletronicamente e verificado nesta data."
+                  : "Este documento não pode mais ser considerado válido."}
+              </p>
+              <p className="mt-3 inline-flex rounded-full bg-primary-foreground/15 px-3 py-1 font-mono text-xs tracking-widest">
+                {doc.code}
+              </p>
+            </div>
           </div>
         </div>
+
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_260px]">
           <div className="space-y-6">
@@ -158,7 +173,39 @@ function DocumentPage() {
                 {doc.body_text || "Sem conteúdo textual informado."}
               </p>
             </section>
+
+            {valid ? (
+              <section className="rounded-xl border border-primary/20 bg-primary-soft/60 p-6">
+                <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-primary">
+                  <ShieldCheck className="h-5 w-5 text-brand-orange" />
+                  Validade legal
+                </h2>
+                <ul className="mt-3 space-y-2 text-sm leading-relaxed text-foreground">
+                  <li>
+                    Documento assinado eletronicamente com certificado digital padrão ICP-Brasil,
+                    com a mesma validade jurídica de um documento em papel assinado de próprio
+                    punho, nos termos da MP nº 2.200-2/2001 e da Lei nº 14.063/2020.
+                  </li>
+                  <li>
+                    Válido em <strong>todo o território nacional</strong>, podendo ser apresentado a
+                    empregadores, farmácias, operadoras de saúde, instituições de ensino e órgãos
+                    públicos.
+                  </li>
+                  <li>
+                    A autenticidade e a integridade {feminine ? "desta" : "deste"}{" "}
+                    {typeLabel.toLowerCase()} podem ser conferidas a qualquer momento pelo código de
+                    verificação ou pelo QR Code ao lado.
+
+                  </li>
+                  <li>
+                    A responsabilidade técnica pelo conteúdo é do profissional emissor, identificado
+                    por seu registro no conselho de classe.
+                  </li>
+                </ul>
+              </section>
+            ) : null}
           </div>
+
 
           <aside className="h-fit rounded-xl border border-border bg-card p-6 text-center">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
