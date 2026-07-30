@@ -3,8 +3,8 @@ import telemedicina from "@/assets/tab-telemedicina.jpg";
 import farmacia from "@/assets/tab-farmacia.jpg";
 import plataforma from "@/assets/tab-plataforma.jpg";
 import familia from "@/assets/hero-familia.jpg";
-import heroIdoso from "@/assets/hero-idoso.png.asset.json";
-import heroPediatra from "@/assets/hero-pediatra.png.asset.json";
+const heroPediatra = { url: "/hero-pediatra.png" };
+const heroIdoso = { url: "/hero-idoso.png" };
 
 const cards = [
   {

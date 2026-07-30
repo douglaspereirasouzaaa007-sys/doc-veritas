@@ -12,11 +12,9 @@ type Slide = {
   cta: string;
 };
 
-// Imagens hospedadas no Unsplash (gratuitas, sem autenticação)
-const HERO_PEDIATRA =
-  "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=1200&q=80&auto=format&fit=crop";
-const HERO_IDOSO =
-  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&q=80&auto=format&fit=crop";
+// Imagens locais (copiadas para public/)
+const HERO_PEDIATRA = "/hero-pediatra.png";
+const HERO_IDOSO = "/hero-idoso.png";
 
 const slides: Slide[] = [
   {
