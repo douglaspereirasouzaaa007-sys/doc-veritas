@@ -59,7 +59,9 @@
   --color-doc-line: var(--doc-line);
   --color-doc-accent: var(--doc-accent);
   --color-doc-accent-soft: var(--doc-accent-soft);
+  --color-doc-accent-strong: var(--doc-accent-strong);
   --color-doc-valid: var(--doc-valid);
+
   --color-doc-invalid: var(--doc-invalid);
   --color-doc-on-dark: var(--doc-on-dark);
   --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
@@ -139,18 +141,20 @@
   --shadow-card: 0 18px 40px -24px color-mix(in oklab, oklch(0.55 0.234 277) 45%, transparent);
   --shadow-soft: 0 8px 24px -16px color-mix(in oklab, oklch(0.28 0.09 279) 40%, transparent);
 
-  /* Paleta sóbria das páginas de documento/verificação (sem roxo) */
-  --doc-bg: oklch(0.975 0.004 240);
+  /* Paleta das páginas de documento/verificação — roxo e branco */
+  --doc-bg: oklch(0.978 0.012 285);
   --doc-surface: oklch(1 0 0);
-  --doc-ink: oklch(0.26 0.026 250);
-  --doc-muted: oklch(0.52 0.018 250);
-  --doc-line: oklch(0.9 0.008 250);
-  --doc-accent: oklch(0.38 0.075 240);
-  --doc-accent-soft: oklch(0.955 0.012 240);
-  --doc-valid: oklch(0.48 0.12 158);
+  --doc-ink: oklch(0.26 0.05 280);
+  --doc-muted: oklch(0.53 0.035 282);
+  --doc-line: oklch(0.91 0.02 285);
+  --doc-accent: oklch(0.51 0.2 278);
+  --doc-accent-strong: oklch(0.42 0.19 279);
+  --doc-accent-soft: oklch(0.965 0.022 283);
+  --doc-valid: oklch(0.5 0.14 158);
   --doc-invalid: oklch(0.5 0.17 25);
   --doc-on-dark: oklch(0.99 0 0);
-  --shadow-doc: 0 10px 30px -22px oklch(0.26 0.026 250 / 55%);
+  --shadow-doc: 0 18px 44px -28px oklch(0.42 0.19 279 / 55%);
+
 }
 
 .dark {

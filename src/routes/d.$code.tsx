@@ -1,5 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, CheckCircle2, FileText, Printer, ShieldCheck, XCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  Building2,
+  CalendarDays,
+  CheckCircle2,
+  FileText,
+  Printer,
+  ShieldCheck,
+  Stethoscope,
+  User,
+  XCircle,
+  type LucideIcon,
+} from "lucide-react";
 import { getPublicDocument } from "@/lib/public-documents.functions";
 import { Logo } from "@/components/site/Logo";
 import { PUBLIC_SITE_URL } from "@/lib/site-url";
@@ -37,24 +49,45 @@ export const Route = createFileRoute("/d/$code")({
   component: DocumentPage,
 });
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Row({
+  label,
+  value,
+  full,
+}: {
+  label: string;
+  value: React.ReactNode;
+  full?: boolean;
+}) {
   return (
-    <div className="py-2.5">
-      <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-doc-muted">
+    <div className={full ? "sm:col-span-2" : undefined}>
+      <dt className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-doc-muted">
         {label}
       </dt>
-      <dd className="mt-1 text-sm font-medium text-doc-ink">{value || "—"}</dd>
+      <dd className="mt-1 text-[15px] font-medium leading-snug text-doc-ink">{value || "—"}</dd>
     </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  title,
+  icon: Icon,
+  children,
+  className = "",
+}: {
+  title: string;
+  icon: LucideIcon;
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
-    <section className="overflow-hidden rounded-lg border border-doc-line bg-doc-surface">
-      <h2 className="border-b border-doc-line bg-doc-accent-soft px-6 py-3 font-display text-sm font-semibold uppercase tracking-[0.08em] text-doc-accent">
-        {title}
+    <section
+      className={`overflow-hidden rounded-2xl border border-doc-line bg-doc-surface shadow-[var(--shadow-doc)] ${className}`}
+    >
+      <h2 className="flex items-center gap-2 border-b border-doc-line bg-doc-accent-soft px-5 py-3 font-display text-[12px] font-semibold uppercase tracking-[0.1em] text-doc-accent-strong">
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className="truncate">{title}</span>
       </h2>
-      <dl className="grid gap-x-10 px-6 py-3 sm:grid-cols-2">{children}</dl>
+      <dl className="grid gap-x-8 gap-y-4 px-5 py-5 sm:grid-cols-2">{children}</dl>
     </section>
   );
 }
@@ -66,7 +99,7 @@ function DocumentPage() {
   if (!doc) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-doc-bg px-4">
-        <div className="max-w-md rounded-lg border border-doc-line bg-doc-surface p-8 text-center shadow-[var(--shadow-doc)]">
+        <div className="max-w-md rounded-2xl border border-doc-line bg-doc-surface p-8 text-center shadow-[var(--shadow-doc)]">
           <XCircle className="mx-auto h-12 w-12 text-doc-invalid" />
           <h1 className="mt-4 font-display text-2xl font-semibold text-doc-ink">
             Documento não encontrado
@@ -96,102 +129,109 @@ function DocumentPage() {
   return (
     <div className="min-h-screen bg-doc-bg pb-16 text-doc-ink">
       <header className="border-b border-doc-line bg-doc-surface print:hidden">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4">
+        <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 py-4">
           <Logo />
           <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-2">
             <Printer className="h-4 w-4" />
-            Imprimir
+            <span className="hidden sm:inline">Imprimir</span>
           </Button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-4xl px-4 py-8">
+      <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">
         <div
-          className={`rounded-lg border px-6 py-6 text-doc-on-dark ${
+          className={`overflow-hidden rounded-2xl border text-doc-on-dark shadow-[var(--shadow-doc)] ${
             valid ? "border-doc-valid bg-doc-valid" : "border-doc-invalid bg-doc-invalid"
           }`}
         >
-          <div className="flex items-start gap-4">
-            {valid ? (
-              <CheckCircle2 className="h-9 w-9 shrink-0" />
-            ) : (
-              <AlertTriangle className="h-9 w-9 shrink-0" />
-            )}
-            <div>
-              <p className="font-display text-2xl font-semibold">
-                {valid
-                  ? `${typeLabel} ${feminine ? "válida" : "válido"}`
-                  : `${typeLabel} ${DOCUMENT_STATUS_LABEL[doc.status]}`}
-              </p>
-              <p className="mt-1 text-sm opacity-90">
-                {valid
-                  ? "Documento autêntico, emitido eletronicamente e verificado nesta data."
-                  : "Este documento não pode mais ser considerado válido."}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <span className="inline-flex rounded border border-doc-on-dark/30 bg-doc-on-dark/10 px-3 py-1 font-mono text-xs tracking-widest">
-                  Token {doc.token}
-                </span>
-                <span className="inline-flex rounded border border-doc-on-dark/30 bg-doc-on-dark/10 px-3 py-1 font-mono text-xs tracking-widest">
-                  Código {doc.code}
-                </span>
+          <div className="grid gap-5 px-5 py-6 sm:px-7 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+            <div className="flex items-start gap-4">
+              {valid ? (
+                <CheckCircle2 className="h-9 w-9 shrink-0" />
+              ) : (
+                <AlertTriangle className="h-9 w-9 shrink-0" />
+              )}
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-80">
+                  Verificação de autenticidade
+                </p>
+                <h1 className="mt-1 font-display text-2xl font-semibold sm:text-3xl">
+                  {valid
+                    ? `${typeLabel} ${feminine ? "válida" : "válido"}`
+                    : `${typeLabel} ${DOCUMENT_STATUS_LABEL[doc.status]}`}
+                </h1>
+                <p className="mt-1 text-sm opacity-90">
+                  {valid
+                    ? "Documento autêntico, emitido eletronicamente e verificado nesta data."
+                    : "Este documento não pode mais ser considerado válido."}
+                </p>
               </div>
+            </div>
+            <div className="flex flex-wrap gap-2 md:justify-end">
+              <span className="inline-flex rounded-lg border border-doc-on-dark/30 bg-doc-on-dark/10 px-3 py-1.5 font-mono text-xs tracking-widest">
+                Token {doc.token}
+              </span>
+              <span className="inline-flex rounded-lg border border-doc-on-dark/30 bg-doc-on-dark/10 px-3 py-1.5 font-mono text-xs tracking-widest">
+                Código {doc.code}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_260px]">
-          <div className="space-y-5">
-            <Section title="Dados do paciente">
-              <Row label="Nome completo" value={doc.patient_name} />
-              <Row label="CPF" value={formatCPF(doc.patient_cpf)} />
-              <Row label="Data de nascimento" value={formatDateBR(doc.patient_birth_date)} />
-            </Section>
-
-            <Section title="Estabelecimento">
-              <Row label="Nome" value={doc.establishment_name} />
-              <Row label="Endereço" value={doc.establishment_address} />
-              <Row label="Data de emissão" value={formatDateBR(doc.issued_at)} />
-              <Row label="Horário de emissão" value={formatDateTimeBR(doc.issued_at)} />
-            </Section>
-
-            <Section title="Profissional emissor">
-              <Row label="Nome" value={doc.professional_name} />
-              <Row label="Especialidade" value={doc.professional_specialty} />
-              <Row label="CRM" value={doc.professional_council_number ? crm : null} />
-            </Section>
-
-            {isAtestado ? (
-              <Section title="Afastamento">
-                <Row label="Início" value={formatDateBR(doc.leave_start_date)} />
-                <Row label="Término" value={formatDateBR(doc.leave_end_date)} />
-                <Row
-                  label="Dias de afastamento"
-                  value={doc.leave_days != null ? `${doc.leave_days} dia(s)` : null}
-                />
-                <Row label="CID" value={doc.cid} />
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
+          <div className="space-y-6">
+            <div className="grid gap-6 xl:grid-cols-2">
+              <Section title="Dados do paciente" icon={User}>
+                <Row label="Nome completo" value={doc.patient_name} full />
+                <Row label="CPF" value={formatCPF(doc.patient_cpf)} />
+                <Row label="Data de nascimento" value={formatDateBR(doc.patient_birth_date)} />
               </Section>
-            ) : null}
 
-            <section className="overflow-hidden rounded-lg border border-doc-line bg-doc-surface">
-              <h2 className="flex items-center gap-2 border-b border-doc-line bg-doc-accent-soft px-6 py-3 font-display text-sm font-semibold uppercase tracking-[0.08em] text-doc-accent">
+              <Section title="Estabelecimento" icon={Building2}>
+                <Row label="Nome" value={doc.establishment_name} full />
+                <Row label="Endereço" value={doc.establishment_address} full />
+                <Row label="Data de emissão" value={formatDateBR(doc.issued_at)} />
+                <Row label="Horário de emissão" value={formatDateTimeBR(doc.issued_at)} />
+              </Section>
+
+              <Section title="Profissional emissor" icon={Stethoscope}>
+                <Row label="Nome" value={doc.professional_name} full />
+                <Row label="Especialidade" value={doc.professional_specialty} />
+                <Row label="CRM" value={doc.professional_council_number ? crm : null} />
+              </Section>
+
+              {isAtestado ? (
+                <Section title="Afastamento" icon={CalendarDays}>
+                  <Row label="Início" value={formatDateBR(doc.leave_start_date)} />
+                  <Row label="Término" value={formatDateBR(doc.leave_end_date)} />
+                  <Row
+                    label="Dias de afastamento"
+                    value={doc.leave_days != null ? `${doc.leave_days} dia(s)` : null}
+                  />
+                  <Row label="CID" value={doc.cid} />
+                </Section>
+              ) : null}
+            </div>
+
+            <section className="overflow-hidden rounded-2xl border border-doc-line bg-doc-surface shadow-[var(--shadow-doc)]">
+              <h2 className="flex items-center gap-2 border-b border-doc-line bg-doc-accent-soft px-5 py-3 font-display text-[12px] font-semibold uppercase tracking-[0.1em] text-doc-accent-strong">
                 <FileText className="h-4 w-4" />
                 Conteúdo do documento
               </h2>
-              <div className="px-6 py-5">
-                <p className="whitespace-pre-wrap text-[15px] leading-7 text-doc-ink">
+              <div className="px-5 py-6 sm:px-8 sm:py-8">
+                <p className="whitespace-pre-wrap text-[15px] leading-8 text-doc-ink sm:text-base">
                   {doc.body_text || "Sem conteúdo textual informado."}
                 </p>
               </div>
             </section>
 
             {valid ? (
-              <section className="rounded-lg border border-doc-line bg-doc-accent-soft p-6">
-                <h2 className="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-[0.08em] text-doc-accent">
+              <section className="rounded-2xl border border-doc-line bg-doc-accent-soft p-5 sm:p-6">
+                <h2 className="flex items-center gap-2 font-display text-[12px] font-semibold uppercase tracking-[0.1em] text-doc-accent-strong">
                   <ShieldCheck className="h-4 w-4" />
                   Validade legal
                 </h2>
-                <ul className="mt-3 space-y-2 text-sm leading-relaxed text-doc-ink">
+                <ul className="mt-4 grid gap-3 text-sm leading-relaxed text-doc-ink sm:grid-cols-2">
                   <li>
                     Documento assinado eletronicamente com certificado digital padrão ICP-Brasil,
                     com a mesma validade jurídica de um documento em papel assinado de próprio
@@ -205,7 +245,7 @@ function DocumentPage() {
                   <li>
                     A autenticidade e a integridade {feminine ? "desta" : "deste"}{" "}
                     {typeLabel.toLowerCase()} podem ser conferidas a qualquer momento pelo token,
-                    pelo código de verificação ou pelo QR Code ao lado.
+                    pelo código de verificação ou pelo QR Code.
                   </li>
                   <li>
                     A responsabilidade técnica pelo conteúdo é do profissional emissor, identificado
@@ -216,14 +256,14 @@ function DocumentPage() {
             ) : null}
           </div>
 
-          <aside className="h-fit rounded-lg border border-doc-line bg-doc-surface p-6 text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-doc-muted">
+          <aside className="h-fit rounded-2xl border border-doc-line bg-doc-surface p-6 text-center shadow-[var(--shadow-doc)] lg:sticky lg:top-6">
+            <p className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-doc-muted">
               Token do documento
             </p>
-            <p className="mt-1 font-mono text-lg font-semibold tracking-widest text-doc-ink">
+            <p className="mt-1 font-mono text-lg font-semibold tracking-widest text-doc-accent-strong">
               {doc.token}
             </p>
-            <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-doc-muted">
+            <p className="mt-4 text-[10.5px] font-semibold uppercase tracking-[0.1em] text-doc-muted">
               Código de acesso
             </p>
             <p className="mt-1 font-mono text-sm font-semibold tracking-widest text-doc-ink">
@@ -232,17 +272,21 @@ function DocumentPage() {
             <img
               src={`/api/public/v1/qrcode/${doc.code}`}
               alt={`QR Code de verificação do documento ${doc.code}`}
-              className="mx-auto mt-4 h-40 w-40 rounded border border-doc-line p-1"
-              width={160}
-              height={160}
+              className="mx-auto mt-5 h-44 w-44 rounded-xl border border-doc-line bg-doc-surface p-2"
+              width={176}
+              height={176}
             />
             <p className="mt-4 text-xs leading-relaxed text-doc-muted">
               Aponte a câmera para o QR Code ou acesse a página de verificação e informe o token ou
               o código de acesso acima.
             </p>
+            <Button asChild variant="outline" size="sm" className="mt-4 w-full print:hidden">
+              <Link to="/verificar">Verificar outro documento</Link>
+            </Button>
           </aside>
         </div>
       </main>
     </div>
   );
 }
+
