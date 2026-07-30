@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import QRCode from "qrcode";
-import { normalizeCode, prettyCode } from "@/lib/documents.shared";
+import { normalizeLookup } from "@/lib/documents.shared";
 import { CORS_HEADERS } from "@/lib/api-keys.server";
 
 export const Route = createFileRoute("/api/public/v1/qrcode/$code")({
@@ -9,13 +9,14 @@ export const Route = createFileRoute("/api/public/v1/qrcode/$code")({
       OPTIONS: async () => new Response(null, { status: 204, headers: CORS_HEADERS }),
 
       GET: async ({ request, params }) => {
-        const code = prettyCode(normalizeCode(params.code));
+        const value = normalizeLookup(params.code).value;
         const origin = new URL(request.url).origin;
-        const svg = await QRCode.toString(`${origin}/d/${code}`, {
+        const svg = await QRCode.toString(`${origin}/d/${value}`, {
           type: "svg",
           margin: 1,
           width: 512,
-          color: { dark: "#4B3BF0", light: "#FFFFFF" },
+          errorCorrectionLevel: "M",
+          color: { dark: "#000000", light: "#FFFFFF" },
         });
         return new Response(svg, {
           status: 200,
