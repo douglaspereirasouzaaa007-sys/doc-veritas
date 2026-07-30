@@ -59,7 +59,9 @@
   --color-doc-line: var(--doc-line);
   --color-doc-accent: var(--doc-accent);
   --color-doc-accent-soft: var(--doc-accent-soft);
+  --color-doc-accent-strong: var(--doc-accent-strong);
   --color-doc-valid: var(--doc-valid);
+
   --color-doc-invalid: var(--doc-invalid);
   --color-doc-on-dark: var(--doc-on-dark);
   --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
