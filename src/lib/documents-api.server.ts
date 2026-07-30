@@ -153,8 +153,9 @@ export async function createDocument(request: Request, type?: DocumentType) {
 
   if (error) return json({ error: error.message }, 500);
 
-  const origin = new URL(request.url).origin;
-  return json({ data, ...links(origin, data) }, 201);
+  const qrcode_base64 = await qrcodeDataUrl(data.code);
+  return json({ data, ...links(data), qrcode_base64 }, 201);
+
 }
 
 /** GET — consulta por token ou código de acesso. */
