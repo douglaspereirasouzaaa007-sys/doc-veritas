@@ -79,14 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Conheça a Memed! Soluções Digitais para Médicos e Pacientes" },
+      { name: "description", content: "Conheça as soluções digitais mais inovadoras com a Memed! Prescrições Digitais, Orientações e Aquisições de Medicamentos de forma simples e rápida!" },
+      { name: "author", content: "Memed" },
+      { property: "og:title", content: "Conheça a Memed! Soluções Digitais para Médicos e Pacientes" },
+      { property: "og:description", content: "Conheça as soluções digitais mais inovadoras com a Memed! Prescrições Digitais, Orientações e Aquisições de Medicamentos de forma simples e rápida!" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:site", content: "@Memed" },
     ],
     links: [
       {
