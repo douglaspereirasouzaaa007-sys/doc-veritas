@@ -172,8 +172,9 @@ export async function getDocument(request: Request, code: string, type?: Documen
   if (error) return json({ error: error.message }, 500);
   if (!data) return json({ error: "Documento não encontrado.", code: lookup.value }, 404);
 
-  const origin = new URL(request.url).origin;
-  return json({ data, ...links(origin, data) });
+  const qrcode_base64 = await qrcodeDataUrl(data.code);
+  return json({ data, ...links(data), qrcode_base64 });
+
 }
 
 const patchSchema = z.object({
