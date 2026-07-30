@@ -203,7 +203,7 @@ function ApiPage() {
         <Endpoint
           method="POST"
           path="/api/public/v1/documents"
-          description="Cria um documento, gera o código de verificação, o QR Code e a página profissional."
+          description="Cria um documento e devolve o token (ex.: ATE-161), o código de acesso, o QR Code e a URL da página profissional."
         >
           <Code>{`curl -X POST ${baseUrl}/api/public/v1/documents \\
   -H "x-api-key: dv_live_sua_chave_aqui" \\
@@ -227,8 +227,17 @@ function ApiPage() {
   }'`}</Code>
           <p className="text-sm text-muted-foreground">Resposta (201):</p>
           <Code>{`{
-  "data": { "code": "ABCD-2345-EFGH", "type": "atestado", "status": "valido", "...": "..." },
+  "data": {
+    "token": "ATE-161",
+    "code": "ABCD-2345-EFGH",
+    "type": "atestado",
+    "status": "valido",
+    "...": "..."
+  },
+  "token": "ATE-161",
+  "access_code": "ABCD-2345-EFGH",
   "verification_url": "${baseUrl}/d/ABCD-2345-EFGH",
+  "token_url": "${baseUrl}/d/ATE-161",
   "qrcode_url": "${baseUrl}/api/public/v1/qrcode/ABCD-2345-EFGH"
 }`}</Code>
         </Endpoint>
@@ -241,13 +250,13 @@ function ApiPage() {
 
         <Endpoint
           method="GET"
-          path="/api/public/v1/documents/{codigo}"
-          description="Consulta um documento específico pelo código de verificação."
+          path="/api/public/v1/documents/{token-ou-codigo}"
+          description="Consulta um documento específico pelo token (ATE-161) ou pelo código de acesso."
         />
 
         <Endpoint
           method="PATCH"
-          path="/api/public/v1/documents/{codigo}"
+          path="/api/public/v1/documents/{token-ou-codigo}"
           description="Atualiza campos do documento (inclusive status: valido, revogado ou expirado)."
         >
           <Code>{`curl -X PATCH ${baseUrl}/api/public/v1/documents/ABCD-2345-EFGH \\
@@ -258,8 +267,8 @@ function ApiPage() {
 
         <Endpoint
           method="GET"
-          path="/api/public/v1/qrcode/{codigo}"
-          description="Retorna o QR Code do documento em SVG, pronto para impressão ou uso no seu sistema."
+          path="/api/public/v1/qrcode/{token-ou-codigo}"
+          description="Retorna o QR Code do documento em SVG preto e branco, pronto para impressão ou uso no seu sistema."
         />
 
         <div className="rounded-xl border border-border bg-card p-6">
@@ -275,6 +284,8 @@ function ApiPage() {
               </thead>
               <tbody className="text-muted-foreground">
                 {[
+                  ["token", "gerado", "Token do documento (ATE-161, REC-22144, LAU-16105) — somente leitura"],
+                  ["code", "gerado", "Código de acesso de 12 caracteres — somente leitura"],
                   ["type", "enum", "atestado, receita, laudo, exame ou declaracao (obrigatório)"],
                   ["status", "enum", "valido (padrão), revogado ou expirado"],
                   ["patient_name", "string", "Nome do paciente (obrigatório)"],
