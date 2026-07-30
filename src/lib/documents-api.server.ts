@@ -8,13 +8,15 @@ import {
   DOCUMENT_TYPES,
 } from "./documents.shared";
 import { authenticateApiKey, json } from "./api-keys.server";
+import { PUBLIC_SITE_URL } from "./site-url";
 
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
 export const PUBLIC_FIELDS =
   "token, code, type, status, establishment_name, establishment_address, patient_name, patient_birth_date, patient_cpf, professional_name, professional_council, professional_council_number, professional_specialty, body_text, cid, leave_start_date, leave_end_date, leave_days, issued_at, metadata, created_at";
 
-function links(origin: string, row: { token: string; code: string }) {
+function links(row: { token: string; code: string }) {
+  const origin = PUBLIC_SITE_URL;
   return {
     token: row.token,
     access_code: row.code,
@@ -22,8 +24,26 @@ function links(origin: string, row: { token: string; code: string }) {
     token_url: `${origin}/d/${row.token}`,
     qrcode_url: `${origin}/api/public/v1/qrcode/${row.code}`,
     qrcode_png_url: `${origin}/api/public/v1/qrcode/${row.code}?format=png`,
+    qrcode_svg_url: `${origin}/api/public/v1/qrcode/${row.code}?format=svg`,
   };
 }
+
+/** Gera o QR Code em PNG (data URL base64) apontando para a página pública do documento. */
+async function qrcodeDataUrl(code: string): Promise<string | null> {
+  try {
+    const QRCode = (await import("qrcode")).default;
+    return await QRCode.toDataURL(`${PUBLIC_SITE_URL}/d/${code}`, {
+      margin: 1,
+      width: 512,
+      errorCorrectionLevel: "M",
+      type: "image/png",
+      color: { dark: "#000000", light: "#FFFFFF" },
+    });
+  } catch {
+    return null;
+  }
+}
+
 
 /** GET — lista documentos, opcionalmente restrita a um tipo. */
 export async function listDocuments(request: Request, type?: DocumentType) {
