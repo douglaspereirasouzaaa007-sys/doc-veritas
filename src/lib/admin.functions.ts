@@ -41,7 +41,7 @@ export const getStats = createServerFn({ method: "GET" })
 
 export const listDocuments = createServerFn({ method: "GET" })
   .middleware([requireLocalAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z
       .object({
         search: z.string().trim().max(120).optional(),
@@ -83,11 +83,11 @@ export const listDocuments = createServerFn({ method: "GET" })
       type: d.type,
       status: d.status,
       patient_name: d.patient_name,
-      patient_cpf: d.patient_cpf,
-      establishment_name: d.establishment_name,
-      professional_name: d.professional_name,
+      patient_cpf: d.patient_cpf ?? null,
+      establishment_name: d.establishment_name ?? null,
+      professional_name: d.professional_name ?? null,
       issued_at: d.issued_at,
-      leave_days: d.leave_days,
+      leave_days: d.leave_days ?? null,
       views_count: d.views_count,
       created_at: d.created_at,
     }));
@@ -95,18 +95,50 @@ export const listDocuments = createServerFn({ method: "GET" })
     return { rows, total };
   });
 
+/** Serializa um DocumentRow para um objeto simples (sem tipos opacos). */
+function serializeDocument(doc: DocumentRow) {
+  return {
+    id: doc.id,
+    token: doc.token,
+    code: doc.code,
+    type: doc.type,
+    status: doc.status,
+    establishment_id: doc.establishment_id ?? null,
+    establishment_name: doc.establishment_name ?? null,
+    establishment_address: doc.establishment_address ?? null,
+    patient_name: doc.patient_name,
+    patient_birth_date: doc.patient_birth_date ?? null,
+    patient_cpf: doc.patient_cpf ?? null,
+    professional_name: doc.professional_name ?? null,
+    professional_council: doc.professional_council ?? null,
+    professional_council_number: doc.professional_council_number ?? null,
+    professional_specialty: doc.professional_specialty ?? null,
+    body_text: doc.body_text ?? null,
+    cid: doc.cid ?? null,
+    leave_start_date: doc.leave_start_date ?? null,
+    leave_end_date: doc.leave_end_date ?? null,
+    leave_days: doc.leave_days ?? null,
+    issued_at: doc.issued_at,
+    metadata: (doc.metadata ?? {}) as Record<string, string | number | boolean | null>,
+    views_count: doc.views_count,
+    created_at: doc.created_at,
+    created_by: doc.created_by ?? null,
+    api_key_id: doc.api_key_id ?? null,
+  };
+}
+
 export const getDocument = createServerFn({ method: "GET" })
   .middleware([requireLocalAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string() }).parse(data))
+  .validator((data: unknown) => z.object({ id: z.string() }).parse(data))
   .handler(async ({ data }) => {
     const store = readStore();
-    const doc = store.documents.find((d) => d.id === data.id) ?? null;
-    return { document: doc };
+    const doc = store.documents.find((d) => d.id === data.id);
+    return { document: doc ? serializeDocument(doc) : null };
   });
 
 export const saveDocument = createServerFn({ method: "POST" })
   .middleware([requireLocalAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z.object({ id: z.string().optional(), values: documentInputSchema }).parse(data),
   )
   .handler(async ({ data }) => {
@@ -162,7 +194,7 @@ export const saveDocument = createServerFn({ method: "POST" })
 
 export const setDocumentStatus = createServerFn({ method: "POST" })
   .middleware([requireLocalAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z.object({ id: z.string(), status: z.enum(DOCUMENT_STATUSES) }).parse(data),
   )
   .handler(async ({ data }) => {
@@ -176,7 +208,7 @@ export const setDocumentStatus = createServerFn({ method: "POST" })
 
 export const deleteDocument = createServerFn({ method: "POST" })
   .middleware([requireLocalAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string() }).parse(data))
+  .validator((data: unknown) => z.object({ id: z.string() }).parse(data))
   .handler(async ({ data }) => {
     const store = readStore();
     const idx = store.documents.findIndex((d) => d.id === data.id);
@@ -198,7 +230,7 @@ export const listEstablishments = createServerFn({ method: "GET" })
 
 export const saveEstablishment = createServerFn({ method: "POST" })
   .middleware([requireLocalAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z
       .object({
         id: z.string().optional(),
@@ -240,7 +272,7 @@ export const saveEstablishment = createServerFn({ method: "POST" })
 
 export const deleteEstablishment = createServerFn({ method: "POST" })
   .middleware([requireLocalAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string() }).parse(data))
+  .validator((data: unknown) => z.object({ id: z.string() }).parse(data))
   .handler(async ({ data }) => {
     const store = readStore();
     const idx = store.establishments.findIndex((e) => e.id === data.id);
@@ -262,7 +294,7 @@ export const listApiKeys = createServerFn({ method: "GET" })
 
 export const createApiKey = createServerFn({ method: "POST" })
   .middleware([requireLocalAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z.object({ name: z.string().trim().min(2).max(80) }).parse(data),
   )
   .handler(async ({ data }) => {
@@ -286,7 +318,7 @@ export const createApiKey = createServerFn({ method: "POST" })
 
 export const updateApiKey = createServerFn({ method: "POST" })
   .middleware([requireLocalAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z.object({ id: z.string(), active: z.boolean() }).parse(data),
   )
   .handler(async ({ data }) => {
@@ -300,7 +332,7 @@ export const updateApiKey = createServerFn({ method: "POST" })
 
 export const deleteApiKey = createServerFn({ method: "POST" })
   .middleware([requireLocalAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string() }).parse(data))
+  .validator((data: unknown) => z.object({ id: z.string() }).parse(data))
   .handler(async ({ data }) => {
     const store = readStore();
     const idx = store.api_keys.findIndex((k) => k.id === data.id);

@@ -38,3 +38,9 @@ externalPort = 80
 deploymentTarget = "cloudrun"
 run = ["node", ".output/server/index.mjs"]
 build = ["bun", "run", "build"]
+
+[userenv]
+
+[userenv.shared]
+PUBLIC_SITE_URL = "https://memedsolutions.com"
+VITE_PUBLIC_SITE_URL = "https://memedsolutions.com"
