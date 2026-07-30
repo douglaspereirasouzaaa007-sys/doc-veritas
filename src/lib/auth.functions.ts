@@ -52,13 +52,26 @@ export const requireLocalAuth = createMiddleware().server(async ({ next }) => {
   return next({ context: { userId: session.userId } });
 });
 
+// ── Utilitário interno: gravar cookie de sessão ───────────────────────────────
+
+async function setSessionCookie(userId: string) {
+  const { createSessionToken } = await import("./auth.server");
+  const { setCookie } = await import("@tanstack/react-start/server");
+  const token = await createSessionToken(userId);
+  setCookie(COOKIE_NAME, token, {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: Math.floor(SESSION_TTL_MS / 1000),
+  });
+}
+
 // ── Server functions ──────────────────────────────────────────────────────────
 
-/** Retorna se o proprietário já está cadastrado (true = login, false = primeiro acesso). */
+/** Retorna se o proprietário já está cadastrado. */
 export const getOwnerStatus = createServerFn({ method: "GET" }).handler(async () => {
   const { getOwner } = await import("./store.server");
-  const owner = getOwner();
-  return { registered: owner !== null };
+  return { registered: getOwner() !== null };
 });
 
 /** Cadastro único do proprietário. Bloqueia automaticamente após o primeiro uso. */
@@ -78,16 +91,7 @@ export const register = createServerFn({ method: "POST" })
     }
     const passwordHash = await hashPassword(data.password);
     saveOwner({ email: data.email, passwordHash, registeredAt: new Date().toISOString() });
-
-    // Faz login automático após cadastro
-    const { createSessionToken } = await import("./auth.server");
-    const { appendResponseHeader } = await import("@tanstack/react-start/server");
-    const token = await createSessionToken("owner");
-    const maxAge = Math.floor(SESSION_TTL_MS / 1000);
-    appendResponseHeader(
-      "set-cookie",
-      `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`,
-    );
+    await setSessionCookie("owner");
     return { ok: true };
   });
 
@@ -101,35 +105,22 @@ export const signIn = createServerFn({ method: "POST" })
 
     let authenticated = false;
     if (owner !== null) {
-      // Proprietário cadastrado — verifica credenciais do store
       authenticated =
         owner.email === data.email && (await verifyPassword(data.password, owner.passwordHash));
     } else {
-      // Ainda sem cadastro — usa env vars como fallback temporário
       const expectedEmail = process.env.OWNER_EMAIL ?? "admin@localhost";
       const expectedPassword = process.env.OWNER_PASSWORD ?? "admin1234";
       authenticated = data.email === expectedEmail && data.password === expectedPassword;
     }
 
     if (!authenticated) throw new Error("E-mail ou senha incorretos.");
-
-    const { createSessionToken } = await import("./auth.server");
-    const { appendResponseHeader } = await import("@tanstack/react-start/server");
-    const token = await createSessionToken("owner");
-    const maxAge = Math.floor(SESSION_TTL_MS / 1000);
-    appendResponseHeader(
-      "set-cookie",
-      `${COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}`,
-    );
+    await setSessionCookie("owner");
     return { ok: true };
   });
 
 export const signOut = createServerFn({ method: "POST" }).handler(async () => {
-  const { appendResponseHeader } = await import("@tanstack/react-start/server");
-  appendResponseHeader(
-    "set-cookie",
-    `${COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`,
-  );
+  const { setCookie } = await import("@tanstack/react-start/server");
+  setCookie(COOKIE_NAME, "", { path: "/", maxAge: 0 });
   return { ok: true };
 });
 

@@ -3,7 +3,7 @@
  * Este arquivo só deve ser importado por outros arquivos .server.ts / middleware.
  */
 import { createMiddleware } from "@tanstack/react-start";
-import { getRequestHeaders } from "@tanstack/react-start/server";
+import { getCookie } from "@tanstack/react-start/server";
 
 const COOKIE_NAME = "dv_session";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -47,20 +47,10 @@ export async function parseSessionToken(token: string): Promise<{ userId: string
   }
 }
 
-// ── Cookie helpers ────────────────────────────────────────────────────────────
-
-export function parseCookieHeader(header: string, name: string): string | null {
-  for (const part of header.split(";")) {
-    const [k, ...v] = part.trim().split("=");
-    if (k === name) return v.join("=") || null;
-  }
-  return null;
-}
+// ── Session from request ──────────────────────────────────────────────────────
 
 export async function getSessionFromHeaders(): Promise<{ userId: string } | null> {
-  const headers = getRequestHeaders();
-  const cookieHeader = headers.get("cookie") ?? "";
-  const token = parseCookieHeader(cookieHeader, COOKIE_NAME);
+  const token = getCookie(COOKIE_NAME);
   if (!token) return null;
   return parseSessionToken(token);
 }

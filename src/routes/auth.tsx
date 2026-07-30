@@ -76,7 +76,8 @@ function AuthPage() {
       <div className="flex flex-1 items-center justify-center px-4 pb-12">
         <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
           <img src="/memed-logo-white.png" alt="Memed"
-            className="h-10 w-auto rounded-lg bg-primary px-3 py-1.5" />
+            className="h-10 w-auto"
+            style={{ filter: "invert(1)" }} />
 
           <h1 className="mt-6 font-display text-2xl font-semibold text-primary">
             {isRegister ? "Criar conta do proprietário" : "Painel do proprietário"}
