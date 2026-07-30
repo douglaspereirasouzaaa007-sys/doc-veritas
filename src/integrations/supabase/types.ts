@@ -107,7 +107,7 @@ export type Database = {
           professional_name?: string | null
           professional_specialty?: string | null
           status?: Database["public"]["Enums"]["document_status"]
-          token: string
+          token?: string
           type: Database["public"]["Enums"]["document_type"]
           updated_at?: string
           views_count?: number
