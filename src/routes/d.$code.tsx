@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, CheckCircle2, FileText, Printer, ShieldCheck, XCircle } from "lucide-react";
 import { getPublicDocument } from "@/lib/public-documents.functions";
 import { Logo } from "@/components/site/Logo";
+import { PUBLIC_SITE_URL } from "@/lib/site-url";
+
 import { Button } from "@/components/ui/button";
 import {
   DOCUMENT_STATUS_LABEL,
