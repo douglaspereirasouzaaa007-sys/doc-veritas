@@ -1,4 +1,4 @@
-// Handlers compartilhados da API pública de documentos (por tipo).
+// Handlers compartilhados da API pública de documentos (por tipo) — armazenamento local.
 import { z } from "zod";
 import {
   documentInputSchema,
@@ -9,11 +9,9 @@ import {
 } from "./documents.shared";
 import { authenticateApiKey, json } from "./api-keys.server";
 import { PUBLIC_SITE_URL } from "./site-url";
+import { readStore, writeStore, nextToken, uuid, type DocumentRow } from "./store.server";
 
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
-
-export const PUBLIC_FIELDS =
-  "token, code, type, status, establishment_name, establishment_address, patient_name, patient_birth_date, patient_cpf, professional_name, professional_council, professional_council_number, professional_specialty, body_text, cid, leave_start_date, leave_end_date, leave_days, issued_at, metadata, created_at";
 
 function links(row: { token: string; code: string }) {
   const origin = PUBLIC_SITE_URL;
@@ -44,6 +42,16 @@ async function qrcodeDataUrl(code: string): Promise<string | null> {
   }
 }
 
+function toPublicFields(row: DocumentRow) {
+  const {
+    id: _id,
+    views_count: _v,
+    created_by: _cb,
+    api_key_id: _ak,
+    ...rest
+  } = row;
+  return rest;
+}
 
 /** GET — lista documentos, opcionalmente restrita a um tipo. */
 export async function listDocuments(request: Request, type?: DocumentType) {
@@ -57,26 +65,25 @@ export async function listDocuments(request: Request, type?: DocumentType) {
   const status = url.searchParams.get("status");
   const queryType = type ?? (url.searchParams.get("type") as DocumentType | null);
 
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  let query = supabaseAdmin
-    .from("documents")
-    .select(PUBLIC_FIELDS, { count: "exact" })
-    .order("created_at", { ascending: false });
+  const store = readStore();
+  let docs = [...store.documents].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  );
 
   if (queryType) {
     if (!DOCUMENT_TYPES.includes(queryType)) return json({ error: "Tipo inválido." }, 422);
-    query = query.eq("type", queryType);
+    docs = docs.filter((d) => d.type === queryType);
   }
-  if (cpf) query = query.eq("patient_cpf", cpf.replace(/\D/g, "").length === 11 ? cpf : cpf);
+  if (cpf) docs = docs.filter((d) => d.patient_cpf?.replace(/\D/g, "") === cpf.replace(/\D/g, ""));
   if (status) {
     if (!DOCUMENT_STATUSES.includes(status as (typeof DOCUMENT_STATUSES)[number]))
       return json({ error: "Status inválido." }, 422);
-    query = query.eq("status", status as (typeof DOCUMENT_STATUSES)[number]);
+    docs = docs.filter((d) => d.status === status);
   }
 
-  const { data, count, error } = await query.range(offset, offset + limit - 1);
-  if (error) return json({ error: error.message }, 500);
-  return json({ data, total: count ?? 0, limit, offset });
+  const total = docs.length;
+  const page = docs.slice(offset, offset + limit).map(toPublicFields);
+  return json({ data: page, total, limit, offset });
 }
 
 /** POST — cria um documento. Quando `type` é fixo, ignora o campo do corpo. */
@@ -111,16 +118,12 @@ export async function createDocument(request: Request, type?: DocumentType) {
   }
 
   const values = parsed.data;
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const store = readStore();
 
   let establishment_name = values.establishment_name ?? null;
   let establishment_address = values.establishment_address ?? null;
   if (values.establishment_id) {
-    const { data: est } = await supabaseAdmin
-      .from("establishments")
-      .select("*")
-      .eq("id", values.establishment_id)
-      .maybeSingle();
+    const est = store.establishments.find((e) => e.id === values.establishment_id);
     if (est) {
       establishment_name = establishment_name ?? est.name;
       establishment_address =
@@ -137,25 +140,41 @@ export async function createDocument(request: Request, type?: DocumentType) {
     }
   }
 
-  const { data, error } = await supabaseAdmin
-    .from("documents")
-    .insert({
-      ...values,
-      establishment_name,
-      establishment_address,
-      metadata: values.metadata ?? {},
-      issued_at: values.issued_at ?? new Date().toISOString(),
-      code: generateDocumentCode(),
-      api_key_id: auth.apiKey.id,
-    })
-    .select(PUBLIC_FIELDS)
-    .single();
+  const code = generateDocumentCode();
+  const token = nextToken(values.type);
+  const row: DocumentRow = {
+    id: uuid(),
+    token,
+    code,
+    type: values.type,
+    status: (values.status ?? "valido") as DocumentRow["status"],
+    establishment_id: values.establishment_id ?? null,
+    establishment_name,
+    establishment_address,
+    patient_name: values.patient_name,
+    patient_birth_date: values.patient_birth_date ?? null,
+    patient_cpf: values.patient_cpf ?? null,
+    professional_name: values.professional_name ?? null,
+    professional_council: values.professional_council ?? null,
+    professional_council_number: values.professional_council_number ?? null,
+    professional_specialty: values.professional_specialty ?? null,
+    body_text: values.body_text ?? null,
+    cid: values.cid ?? null,
+    leave_start_date: values.leave_start_date ?? null,
+    leave_end_date: values.leave_end_date ?? null,
+    leave_days: values.leave_days ?? null,
+    issued_at: values.issued_at ?? new Date().toISOString(),
+    metadata: (values.metadata ?? {}) as Record<string, unknown>,
+    views_count: 0,
+    created_at: new Date().toISOString(),
+    api_key_id: auth.apiKey.id,
+  };
 
-  if (error) return json({ error: error.message }, 500);
+  store.documents.push(row);
+  writeStore(store);
 
-  const qrcode_base64 = await qrcodeDataUrl(data.code);
-  return json({ data, ...links(data), qrcode_base64 }, 201);
-
+  const qrcode_base64 = await qrcodeDataUrl(code);
+  return json({ data: toPublicFields(row), ...links(row), qrcode_base64 }, 201);
 }
 
 /** GET — consulta por token ou código de acesso. */
@@ -164,17 +183,14 @@ export async function getDocument(request: Request, code: string, type?: Documen
   if (!auth.ok) return json({ error: auth.error }, auth.status);
 
   const lookup = normalizeLookup(code);
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  let query = supabaseAdmin.from("documents").select(PUBLIC_FIELDS).eq(lookup.kind, lookup.value);
-  if (type) query = query.eq("type", type);
+  const store = readStore();
+  let row = store.documents.find((d) => d[lookup.kind] === lookup.value) ?? null;
+  if (type && row && row.type !== type) row = null;
 
-  const { data, error } = await query.maybeSingle();
-  if (error) return json({ error: error.message }, 500);
-  if (!data) return json({ error: "Documento não encontrado.", code: lookup.value }, 404);
+  if (!row) return json({ error: "Documento não encontrado.", code: lookup.value }, 404);
 
-  const qrcode_base64 = await qrcodeDataUrl(data.code);
-  return json({ data, ...links(data), qrcode_base64 });
-
+  const qrcode_base64 = await qrcodeDataUrl(row.code);
+  return json({ data: toPublicFields(row), ...links(row), qrcode_base64 });
 }
 
 const patchSchema = z.object({
@@ -199,14 +215,14 @@ export async function patchDocument(request: Request, code: string, type?: Docum
   if (!parsed.success) return json({ error: "Dados inválidos." }, 422);
 
   const lookup = normalizeLookup(code);
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  let query = supabaseAdmin.from("documents").update(parsed.data).eq(lookup.kind, lookup.value);
-  if (type) query = query.eq("type", type);
+  const store = readStore();
+  const idx = store.documents.findIndex((d) => d[lookup.kind] === lookup.value);
+  if (idx === -1 || (type && store.documents[idx].type !== type))
+    return json({ error: "Documento não encontrado." }, 404);
 
-  const { data, error } = await query.select(PUBLIC_FIELDS).maybeSingle();
-  if (error) return json({ error: error.message }, 500);
-  if (!data) return json({ error: "Documento não encontrado." }, 404);
-  return json({ data });
+  Object.assign(store.documents[idx], parsed.data);
+  writeStore(store);
+  return json({ data: toPublicFields(store.documents[idx]) });
 }
 
 /** DELETE — revoga o documento (mantém histórico). */
@@ -215,15 +231,13 @@ export async function revokeDocument(request: Request, code: string, type?: Docu
   if (!auth.ok) return json({ error: auth.error }, auth.status);
 
   const lookup = normalizeLookup(code);
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  let query = supabaseAdmin
-    .from("documents")
-    .update({ status: "revogado" as const })
-    .eq(lookup.kind, lookup.value);
-  if (type) query = query.eq("type", type);
+  const store = readStore();
+  const idx = store.documents.findIndex((d) => d[lookup.kind] === lookup.value);
+  if (idx === -1 || (type && store.documents[idx].type !== type))
+    return json({ error: "Documento não encontrado." }, 404);
 
-  const { data, error } = await query.select("token, code, status").maybeSingle();
-  if (error) return json({ error: error.message }, 500);
-  if (!data) return json({ error: "Documento não encontrado." }, 404);
-  return json({ ok: true, status: "revogado", token: data.token, access_code: data.code });
+  store.documents[idx].status = "revogado";
+  writeStore(store);
+  const row = store.documents[idx];
+  return json({ ok: true, status: "revogado", token: row.token, access_code: row.code });
 }

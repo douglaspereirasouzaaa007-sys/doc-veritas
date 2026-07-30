@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+import { signIn, getSession } from "@/lib/auth.functions";
 import { Logo } from "@/components/site/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +12,8 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Acesso ao painel | Memed" },
-      {
-        name: "description",
-        content: "Entre no painel administrativo para emitir e gerenciar documentos digitais.",
-      },
+      { name: "description", content: "Entre no painel administrativo." },
       { property: "og:title", content: "Acesso ao painel | Memed" },
-      { property: "og:description", content: "Área restrita do painel administrativo Memed." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -30,19 +27,25 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/painel" });
-    });
-  }, [navigate]);
+  const checkSession = useServerFn(getSession);
+  const doSignIn = useServerFn(signIn);
 
-  async function signIn(e: React.FormEvent) {
+  useEffect(() => {
+    checkSession({}).then(({ loggedIn }) => {
+      if (loggedIn) navigate({ to: "/painel" });
+    });
+  }, [navigate, checkSession]);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) return toast.error(error.message);
-    navigate({ to: "/painel" });
+    try {
+      await doSignIn({ data: { email, password } });
+      navigate({ to: "/painel" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Credenciais inválidas.");
+      setLoading(false);
+    }
   }
 
   return (
@@ -56,7 +59,7 @@ function AuthPage() {
           Gerencie documentos, estabelecimentos e chaves de API.
         </p>
 
-        <form onSubmit={signIn} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="email">E-mail</Label>
             <Input
@@ -75,7 +78,7 @@ function AuthPage() {
               type="password"
               autoComplete="current-password"
               required
-              minLength={6}
+              minLength={4}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -84,7 +87,7 @@ function AuthPage() {
             {loading ? "Entrando..." : "Entrar"}
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Cadastro de novas contas desativado. Acesso restrito ao proprietário.
+            Acesso restrito ao proprietário do sistema.
           </p>
         </form>
       </div>

@@ -1,5 +1,4 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import {
   documentInputSchema,
@@ -7,66 +6,42 @@ import {
   DOCUMENT_STATUSES,
   DOCUMENT_TYPES,
 } from "./documents.shared";
+import { requireLocalAuth } from "./auth.server";
+
+import { readStore, writeStore, nextToken, uuid, type DocumentRow } from "./store.server";
+import { randomApiKey, hashApiKey } from "./api-keys.server";
 
 export const getMe = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data: profile } = await context.supabase
-      .from("profiles")
-      .select("id, full_name, email")
-      .eq("id", context.userId)
-      .maybeSingle();
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    return { profile: profile ?? null, isAdmin: Boolean(isAdmin) };
+  .middleware([requireLocalAuth])
+  .handler(async () => {
+    return { profile: { full_name: "Proprietário", email: process.env.OWNER_EMAIL ?? "admin@localhost" }, isAdmin: true };
   });
 
 export const getStats = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const [docs, valid, revoked, establishments, keys, verifications] = await Promise.all([
-      context.supabase.from("documents").select("id", { count: "exact", head: true }),
-      context.supabase
-        .from("documents")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "valido"),
-      context.supabase
-        .from("documents")
-        .select("id", { count: "exact", head: true })
-        .eq("status", "revogado"),
-      context.supabase.from("establishments").select("id", { count: "exact", head: true }),
-      context.supabase
-        .from("api_keys")
-        .select("id", { count: "exact", head: true })
-        .eq("active", true),
-      context.supabase.from("verifications").select("id", { count: "exact", head: true }),
-    ]);
-
-    const { data: byType } = await context.supabase.from("documents").select("type, created_at");
+  .middleware([requireLocalAuth])
+  .handler(async () => {
+    const store = readStore();
     const counts: Record<string, number> = {};
     const byDay: Record<string, number> = {};
-    for (const row of byType ?? []) {
-      counts[row.type] = (counts[row.type] ?? 0) + 1;
-      const day = String(row.created_at).slice(0, 10);
+    for (const doc of store.documents) {
+      counts[doc.type] = (counts[doc.type] ?? 0) + 1;
+      const day = doc.created_at.slice(0, 10);
       byDay[day] = (byDay[day] ?? 0) + 1;
     }
-
     return {
-      documents: docs.count ?? 0,
-      valid: valid.count ?? 0,
-      revoked: revoked.count ?? 0,
-      establishments: establishments.count ?? 0,
-      apiKeys: keys.count ?? 0,
-      verifications: verifications.count ?? 0,
+      documents: store.documents.length,
+      valid: store.documents.filter((d) => d.status === "valido").length,
+      revoked: store.documents.filter((d) => d.status === "revogado").length,
+      establishments: store.establishments.length,
+      apiKeys: store.api_keys.filter((k) => k.active).length,
+      verifications: store.verifications.length,
       byType: counts,
       byDay,
     };
   });
 
 export const listDocuments = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireLocalAuth])
   .inputValidator((data: unknown) =>
     z
       .object({
@@ -78,121 +53,156 @@ export const listDocuments = createServerFn({ method: "GET" })
       })
       .parse(data ?? {}),
   )
-  .handler(async ({ data, context }) => {
-    let query = context.supabase
-      .from("documents")
-      .select(
-        "id, token, code, type, status, patient_name, patient_cpf, establishment_name, professional_name, issued_at, leave_days, views_count, created_at",
-        { count: "exact" },
-      )
-      .order("created_at", { ascending: false });
+  .handler(async ({ data }) => {
+    const store = readStore();
+    let docs = [...store.documents].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
 
     if (data.search) {
-      const term = `%${data.search}%`;
-      query = query.or(
-        `patient_name.ilike.${term},token.ilike.${term},code.ilike.${term},patient_cpf.ilike.${term},establishment_name.ilike.${term}`,
+      const term = data.search.toLowerCase();
+      docs = docs.filter(
+        (d) =>
+          d.patient_name.toLowerCase().includes(term) ||
+          d.token.toLowerCase().includes(term) ||
+          d.code.toLowerCase().includes(term) ||
+          (d.patient_cpf ?? "").includes(term) ||
+          (d.establishment_name ?? "").toLowerCase().includes(term),
       );
     }
     if (data.type && data.type !== "todos")
-      query = query.eq("type", data.type as (typeof DOCUMENT_TYPES)[number]);
+      docs = docs.filter((d) => d.type === (data.type as (typeof DOCUMENT_TYPES)[number]));
     if (data.status && data.status !== "todos")
-      query = query.eq("status", data.status as (typeof DOCUMENT_STATUSES)[number]);
+      docs = docs.filter((d) => d.status === (data.status as (typeof DOCUMENT_STATUSES)[number]));
 
+    const total = docs.length;
     const from = (data.page - 1) * data.pageSize;
-    const { data: rows, count, error } = await query.range(from, from + data.pageSize - 1);
-    if (error) throw new Error(error.message);
-    return { rows: rows ?? [], total: count ?? 0 };
+    const rows = docs.slice(from, from + data.pageSize).map((d) => ({
+      id: d.id,
+      token: d.token,
+      code: d.code,
+      type: d.type,
+      status: d.status,
+      patient_name: d.patient_name,
+      patient_cpf: d.patient_cpf,
+      establishment_name: d.establishment_name,
+      professional_name: d.professional_name,
+      issued_at: d.issued_at,
+      leave_days: d.leave_days,
+      views_count: d.views_count,
+      created_at: d.created_at,
+    }));
+
+    return { rows, total };
   });
 
 export const getDocument = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
-  .handler(async ({ data, context }) => {
-    const { data: row, error } = await context.supabase
-      .from("documents")
-      .select("*")
-      .eq("id", data.id)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    return { document: row };
+  .middleware([requireLocalAuth])
+  .inputValidator((data: unknown) => z.object({ id: z.string() }).parse(data))
+  .handler(async ({ data }) => {
+    const store = readStore();
+    const doc = store.documents.find((d) => d.id === data.id) ?? null;
+    return { document: doc };
   });
 
 export const saveDocument = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireLocalAuth])
   .inputValidator((data: unknown) =>
-    z
-      .object({ id: z.string().uuid().optional(), values: documentInputSchema })
-      .parse(data),
+    z.object({ id: z.string().optional(), values: documentInputSchema }).parse(data),
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
+    const store = readStore();
     const payload = {
       ...data.values,
-      metadata: data.values.metadata ?? {},
+      metadata: (data.values.metadata ?? {}) as Record<string, unknown>,
       issued_at: data.values.issued_at ?? new Date().toISOString(),
     };
 
     if (data.id) {
-      const { data: row, error } = await context.supabase
-        .from("documents")
-        .update(payload)
-        .eq("id", data.id)
-        .select("id, token, code")
-        .maybeSingle();
-      if (error) throw new Error(error.message);
-      return { id: row?.id ?? data.id, code: row?.code ?? "", token: row?.token ?? "" };
+      const idx = store.documents.findIndex((d) => d.id === data.id);
+      if (idx === -1) throw new Error("Documento não encontrado.");
+      Object.assign(store.documents[idx], payload);
+      writeStore(store);
+      const row = store.documents[idx];
+      return { id: row.id, code: row.code, token: row.token };
     }
 
-    const { data: row, error } = await context.supabase
-      .from("documents")
-      .insert({ ...payload, code: generateDocumentCode(), created_by: context.userId })
-      .select("id, token, code")
-      .single();
-    if (error) throw new Error(error.message);
+    const code = generateDocumentCode();
+    const token = nextToken(payload.type);
+    const row: DocumentRow = {
+      id: uuid(),
+      token,
+      code,
+      type: payload.type,
+      status: (payload.status ?? "valido") as DocumentRow["status"],
+      establishment_id: payload.establishment_id ?? null,
+      establishment_name: payload.establishment_name ?? null,
+      establishment_address: payload.establishment_address ?? null,
+      patient_name: payload.patient_name,
+      patient_birth_date: payload.patient_birth_date ?? null,
+      patient_cpf: payload.patient_cpf ?? null,
+      professional_name: payload.professional_name ?? null,
+      professional_council: payload.professional_council ?? null,
+      professional_council_number: payload.professional_council_number ?? null,
+      professional_specialty: payload.professional_specialty ?? null,
+      body_text: payload.body_text ?? null,
+      cid: payload.cid ?? null,
+      leave_start_date: payload.leave_start_date ?? null,
+      leave_end_date: payload.leave_end_date ?? null,
+      leave_days: payload.leave_days ?? null,
+      issued_at: payload.issued_at,
+      metadata: payload.metadata,
+      views_count: 0,
+      created_at: new Date().toISOString(),
+      created_by: "owner",
+    };
+    store.documents.push(row);
+    writeStore(store);
     return { id: row.id, code: row.code, token: row.token };
   });
 
 export const setDocumentStatus = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireLocalAuth])
   .inputValidator((data: unknown) =>
-    z
-      .object({ id: z.string().uuid(), status: z.enum(DOCUMENT_STATUSES) })
-      .parse(data),
+    z.object({ id: z.string(), status: z.enum(DOCUMENT_STATUSES) }).parse(data),
   )
-  .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("documents")
-      .update({ status: data.status })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+  .handler(async ({ data }) => {
+    const store = readStore();
+    const doc = store.documents.find((d) => d.id === data.id);
+    if (!doc) throw new Error("Documento não encontrado.");
+    doc.status = data.status;
+    writeStore(store);
     return { ok: true };
   });
 
 export const deleteDocument = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
-  .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("documents").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+  .middleware([requireLocalAuth])
+  .inputValidator((data: unknown) => z.object({ id: z.string() }).parse(data))
+  .handler(async ({ data }) => {
+    const store = readStore();
+    const idx = store.documents.findIndex((d) => d.id === data.id);
+    if (idx === -1) throw new Error("Documento não encontrado.");
+    store.documents.splice(idx, 1);
+    writeStore(store);
     return { ok: true };
   });
 
 export const listEstablishments = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("establishments")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return { rows: data ?? [] };
+  .middleware([requireLocalAuth])
+  .handler(async () => {
+    const store = readStore();
+    const rows = [...store.establishments].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
+    return { rows };
   });
 
 export const saveEstablishment = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireLocalAuth])
   .inputValidator((data: unknown) =>
     z
       .object({
-        id: z.string().uuid().optional(),
+        id: z.string().optional(),
         values: z.object({
           name: z.string().trim().min(2).max(200),
           cnpj: z.string().trim().max(30).optional().nullable(),
@@ -209,94 +219,104 @@ export const saveEstablishment = createServerFn({ method: "POST" })
       })
       .parse(data),
   )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ data }) => {
+    const store = readStore();
     if (data.id) {
-      const { error } = await context.supabase
-        .from("establishments")
-        .update(data.values)
-        .eq("id", data.id);
-      if (error) throw new Error(error.message);
+      const est = store.establishments.find((e) => e.id === data.id);
+      if (!est) throw new Error("Estabelecimento não encontrado.");
+      Object.assign(est, data.values);
+      writeStore(store);
       return { id: data.id };
     }
-    const { data: row, error } = await context.supabase
-      .from("establishments")
-      .insert(data.values)
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-    return { id: row.id };
+    const newEst = {
+      id: uuid(),
+      active: true,
+      created_at: new Date().toISOString(),
+      ...data.values,
+    };
+    store.establishments.push(newEst);
+    writeStore(store);
+    return { id: newEst.id };
   });
 
 export const deleteEstablishment = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
-  .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("establishments").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+  .middleware([requireLocalAuth])
+  .inputValidator((data: unknown) => z.object({ id: z.string() }).parse(data))
+  .handler(async ({ data }) => {
+    const store = readStore();
+    const idx = store.establishments.findIndex((e) => e.id === data.id);
+    if (idx === -1) throw new Error("Estabelecimento não encontrado.");
+    store.establishments.splice(idx, 1);
+    writeStore(store);
     return { ok: true };
   });
 
 export const listApiKeys = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("api_keys")
-      .select("id, name, key_prefix, active, last_used_at, requests_count, created_at")
-      .order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return { rows: data ?? [] };
+  .middleware([requireLocalAuth])
+  .handler(async () => {
+    const store = readStore();
+    const rows = store.api_keys
+      .map(({ key_hash: _h, ...rest }) => rest)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    return { rows };
   });
 
 export const createApiKey = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireLocalAuth])
   .inputValidator((data: unknown) =>
     z.object({ name: z.string().trim().min(2).max(80) }).parse(data),
   )
-  .handler(async ({ data, context }) => {
-    const { randomApiKey, hashApiKey } = await import("./api-keys.server");
+  .handler(async ({ data }) => {
     const { key, prefix } = randomApiKey();
     const key_hash = await hashApiKey(key);
-    const { error } = await context.supabase.from("api_keys").insert({
+    const store = readStore();
+    store.api_keys.push({
+      id: uuid(),
       name: data.name,
       key_prefix: prefix,
       key_hash,
-      created_by: context.userId,
+      active: true,
+      requests_count: 0,
+      last_used_at: null,
+      created_at: new Date().toISOString(),
+      created_by: "owner",
     });
-    if (error) throw new Error(error.message);
+    writeStore(store);
     return { key };
   });
 
 export const updateApiKey = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireLocalAuth])
   .inputValidator((data: unknown) =>
-    z.object({ id: z.string().uuid(), active: z.boolean() }).parse(data),
+    z.object({ id: z.string(), active: z.boolean() }).parse(data),
   )
-  .handler(async ({ data, context }) => {
-    const { error } = await context.supabase
-      .from("api_keys")
-      .update({ active: data.active })
-      .eq("id", data.id);
-    if (error) throw new Error(error.message);
+  .handler(async ({ data }) => {
+    const store = readStore();
+    const key = store.api_keys.find((k) => k.id === data.id);
+    if (!key) throw new Error("Chave não encontrada.");
+    key.active = data.active;
+    writeStore(store);
     return { ok: true };
   });
 
 export const deleteApiKey = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
-  .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.from("api_keys").delete().eq("id", data.id);
-    if (error) throw new Error(error.message);
+  .middleware([requireLocalAuth])
+  .inputValidator((data: unknown) => z.object({ id: z.string() }).parse(data))
+  .handler(async ({ data }) => {
+    const store = readStore();
+    const idx = store.api_keys.findIndex((k) => k.id === data.id);
+    if (idx === -1) throw new Error("Chave não encontrada.");
+    store.api_keys.splice(idx, 1);
+    writeStore(store);
     return { ok: true };
   });
 
 export const listVerifications = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { data, error } = await context.supabase
-      .from("verifications")
-      .select("id, code, found, created_at, document_id")
-      .order("created_at", { ascending: false })
-      .limit(100);
-    if (error) throw new Error(error.message);
-    return { rows: data ?? [] };
+  .middleware([requireLocalAuth])
+  .handler(async () => {
+    const store = readStore();
+    const rows = [...store.verifications]
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 100);
+    return { rows };
   });

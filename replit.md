@@ -26,6 +26,17 @@ The dev server starts on port 5000.
 - `src/integrations/supabase/` — Supabase client and auth helpers
 - `supabase/migrations/` — database schema migrations
 
+## Acesso ao painel do proprietário
+
+- **E-mail:** `admin@localhost`
+- **Senha:** `admin1234`
+
+Para alterar as credenciais, defina as variáveis de ambiente:
+- `OWNER_EMAIL` — e-mail do proprietário
+- `OWNER_PASSWORD` — senha do proprietário
+
+Os documentos são armazenados em `data/store.json` na raiz do projeto (JSON local, sem banco de dados).
+
 ## User preferences
 
 - Keep the existing project structure and stack

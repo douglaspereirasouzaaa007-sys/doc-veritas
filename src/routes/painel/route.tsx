@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { FileText, Home, KeyRound, Building2, LogOut, ShieldCheck } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSession, signOut } from "@/lib/auth.functions";
 import { Logo } from "@/components/site/Logo";
 import { Button } from "@/components/ui/button";
 
@@ -17,22 +18,20 @@ const nav: { to: string; label: string; icon: typeof Home; exact?: boolean }[] =
   { to: "/painel/verificacoes", label: "Verificações", icon: ShieldCheck },
 ];
 
-
 function PainelLayout() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  const checkSession = useServerFn(getSession);
+  const doSignOut = useServerFn(signOut);
+
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) navigate({ to: "/auth" });
+    checkSession({}).then(({ loggedIn }) => {
+      if (!loggedIn) navigate({ to: "/auth" });
       else setReady(true);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (!session) navigate({ to: "/auth" });
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, checkSession]);
 
   if (!ready) {
     return (
@@ -69,7 +68,7 @@ function PainelLayout() {
           variant="ghost"
           className="justify-start gap-3 text-muted-foreground"
           onClick={async () => {
-            await supabase.auth.signOut();
+            await doSignOut({});
             navigate({ to: "/auth" });
           }}
         >

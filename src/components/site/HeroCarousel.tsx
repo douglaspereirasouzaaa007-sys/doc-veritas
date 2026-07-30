@@ -2,8 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import heroPediatra from "@/assets/hero-pediatra.png.asset.json";
-import heroIdoso from "@/assets/hero-idoso.png.asset.json";
 import heroFamilia from "@/assets/hero-familia.jpg";
 
 type Slide = {
@@ -14,9 +12,15 @@ type Slide = {
   cta: string;
 };
 
+// Imagens hospedadas no Unsplash (gratuitas, sem autenticação)
+const HERO_PEDIATRA =
+  "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=1200&q=80&auto=format&fit=crop";
+const HERO_IDOSO =
+  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1200&q=80&auto=format&fit=crop";
+
 const slides: Slide[] = [
   {
-    image: heroPediatra.url,
+    image: HERO_PEDIATRA,
     alt: "Pediatra examinando um bebê no colo da mãe durante a consulta",
     title: (
       <>
@@ -34,7 +38,7 @@ const slides: Slide[] = [
     cta: "Clique e prescreva",
   },
   {
-    image: heroIdoso.url,
+    image: HERO_IDOSO,
     alt: "Médica sorrindo e segurando as mãos de um paciente idoso",
     title: (
       <>
@@ -86,7 +90,7 @@ export function HeroCarousel() {
 
   return (
     <section className="relative isolate overflow-hidden bg-muted">
-      {/* Mobile: imagem em cima, texto embaixo (igual ao app da Memed) */}
+      {/* Mobile: imagem em cima, texto embaixo */}
       <div className="lg:hidden">
         <img
           src={slide.image}

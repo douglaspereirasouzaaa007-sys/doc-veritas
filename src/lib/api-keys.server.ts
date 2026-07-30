@@ -1,4 +1,6 @@
-// Helpers server-only para chaves de API.
+// Helpers server-only para chaves de API — usa armazenamento local.
+import { readStore, writeStore } from "./store.server";
+
 export function randomApiKey(): { key: string; prefix: string } {
   const bytes = new Uint8Array(24);
   crypto.getRandomValues(bytes);
@@ -28,27 +30,19 @@ export async function authenticateApiKey(request: Request): Promise<
     return { ok: false, status: 401, error: "Chave de API ausente. Envie o header x-api-key." };
   }
 
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const hash = await hashApiKey(header.trim());
-  const { data, error } = await supabaseAdmin
-    .from("api_keys")
-    .select("id, name, active, requests_count")
-    .eq("key_hash", hash)
-    .maybeSingle();
+  const store = readStore();
+  const found = store.api_keys.find((k) => k.key_hash === hash);
 
-  if (error) return { ok: false, status: 500, error: "Falha ao validar a chave de API." };
-  if (!data) return { ok: false, status: 401, error: "Chave de API inválida." };
-  if (!data.active) return { ok: false, status: 403, error: "Chave de API desativada." };
+  if (!found) return { ok: false, status: 401, error: "Chave de API inválida." };
+  if (!found.active) return { ok: false, status: 403, error: "Chave de API desativada." };
 
-  await supabaseAdmin
-    .from("api_keys")
-    .update({
-      last_used_at: new Date().toISOString(),
-      requests_count: (data.requests_count ?? 0) + 1,
-    })
-    .eq("id", data.id);
+  // Atualiza uso
+  found.last_used_at = new Date().toISOString();
+  found.requests_count = (found.requests_count ?? 0) + 1;
+  writeStore(store);
 
-  return { ok: true, apiKey: { id: data.id, name: data.name, active: data.active } };
+  return { ok: true, apiKey: { id: found.id, name: found.name, active: found.active } };
 }
 
 export const CORS_HEADERS = {
