@@ -1,0 +1,1 @@
+insert into public.api_keys (name, key_prefix, key_hash, active) values ('temp-verify', 'dv_live_tempver', '35199bc58186e52ebea1c7d5e7d8030cce18b35adaa1eaf1ea373509e152ee13', true);
