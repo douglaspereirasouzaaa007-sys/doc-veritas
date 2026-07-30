@@ -120,10 +120,12 @@ export function writeStore(store: Store): void {
   writeFileSync(DATA_PATH, JSON.stringify(store, null, 2), "utf-8");
 }
 
+/** Gera o próximo token sequencial no formato PREFIXO-NNNNN (mínimo 5 dígitos). */
 export function nextToken(type: string): string {
   const store = readStore();
   const prefix = TOKEN_PREFIXES[type] ?? type.slice(0, 3).toUpperCase();
-  const count = (store.counters[prefix] ?? 0) + 1;
+  // Inicia em 10000 para que o primeiro token já tenha 5 dígitos (ex.: ATE-10001).
+  const count = (store.counters[prefix] ?? 10000) + 1;
   store.counters[prefix] = count;
   writeStore(store);
   return `${prefix}-${count}`;

@@ -166,22 +166,22 @@ export const documentInputSchema = z.preprocess(normalizeDocumentPayload, baseDo
 
 export type DocumentInput = z.infer<typeof baseDocumentSchema>;
 
-const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
+/** Gera um código de acesso numérico de 6 dígitos (ex.: 847291). */
 export function generateDocumentCode(): string {
-  const bytes = new Uint8Array(12);
-  crypto.getRandomValues(bytes);
-  const raw = Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join("");
-  return `${raw.slice(0, 4)}-${raw.slice(4, 8)}-${raw.slice(8, 12)}`;
+  const buf = new Uint32Array(1);
+  crypto.getRandomValues(buf);
+  const n = 100000 + (buf[0] % 900000); // 100000–999999
+  return String(n);
 }
 
+/** Normaliza o código de acesso (remove não-dígitos). */
 export function normalizeCode(code: string): string {
-  return code.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return code.trim().replace(/\D/g, "");
 }
 
+/** Formata o código de acesso para exibição (mantém como 6 dígitos). */
 export function prettyCode(code: string): string {
-  const n = normalizeCode(code);
-  return n.length === 12 ? `${n.slice(0, 4)}-${n.slice(4, 8)}-${n.slice(8, 12)}` : code;
+  return normalizeCode(code);
 }
 
 /** Prefixos de token por tipo de documento (ex.: ATE-161, REC-22144, LAU-16105). */
@@ -206,10 +206,10 @@ export function normalizeToken(value: string): string {
   return `${raw.slice(0, 3)}-${raw.slice(3).replace(/^0+(?=\d)/, "")}`;
 }
 
-/** Aceita token ou código de acesso e devolve a chave de busca canônica. */
+/** Aceita token (ATE-12345) ou código de acesso (6 dígitos) e devolve a chave de busca canônica. */
 export function normalizeLookup(value: string): { kind: "token" | "code"; value: string } {
   if (isDocumentToken(value)) return { kind: "token", value: normalizeToken(value) };
-  return { kind: "code", value: prettyCode(normalizeCode(value)) };
+  return { kind: "code", value: normalizeCode(value) };
 }
 
 export type PublicDocument = {
