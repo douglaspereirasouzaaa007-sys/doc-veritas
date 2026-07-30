@@ -1,9 +1,20 @@
 /**
- * Server functions de autenticação — podem ser importadas pelo cliente via useServerFn.
+ * Server functions e middleware de autenticação — podem ser importadas pelo cliente via useServerFn.
  * Usa importações dinâmicas para código server-only, evitando bundling no cliente.
  */
-import { createServerFn } from "@tanstack/react-start";
+import { createServerFn, createMiddleware } from "@tanstack/react-start";
 import { z } from "zod";
+
+/**
+ * Middleware de autenticação local — usa dynamic import para não puxar
+ * @tanstack/react-start/server para o bundle do cliente.
+ */
+export const requireLocalAuth = createMiddleware().server(async ({ next }) => {
+  const { getSessionFromHeaders } = await import("./auth.server");
+  const session = await getSessionFromHeaders();
+  if (!session) throw new Error("Não autenticado. Faça login para continuar.");
+  return next({ context: { userId: session.userId } });
+});
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const COOKIE_NAME = "dv_session";

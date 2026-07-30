@@ -6,8 +6,7 @@ import {
   DOCUMENT_STATUSES,
   DOCUMENT_TYPES,
 } from "./documents.shared";
-import { requireLocalAuth } from "./auth.server";
-
+import { requireLocalAuth } from "./auth.functions";
 import { readStore, writeStore, nextToken, uuid, type DocumentRow } from "./store.server";
 import { randomApiKey, hashApiKey } from "./api-keys.server";
 
