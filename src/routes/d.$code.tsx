@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, CheckCircle2, FileText, Printer, ShieldCheck, XCircle } from "lucide-react";
 import { getPublicDocument } from "@/lib/public-documents.functions";
 import { Logo } from "@/components/site/Logo";
+import { PUBLIC_SITE_URL } from "@/lib/site-url";
+
 import { Button } from "@/components/ui/button";
 import {
   DOCUMENT_STATUS_LABEL,
@@ -26,9 +28,12 @@ export const Route = createFileRoute("/d/$code")({
         content: "Documento digital verificado com dados do paciente, estabelecimento e emissão.",
       },
       { property: "og:type", content: "article" },
+      { property: "og:url", content: `${PUBLIC_SITE_URL}/d/${params.code}` },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: `${PUBLIC_SITE_URL}/d/${params.code}` }],
   }),
+
   component: DocumentPage,
 });
 
