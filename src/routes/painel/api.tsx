@@ -81,7 +81,7 @@ function ApiPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://seu-dominio";
+  const baseUrl = PUBLIC_SITE_URL;
 
   return (
     <div className="space-y-8">
