@@ -76,6 +76,9 @@ function DocumentPage() {
 
   const valid = doc.status === "valido";
   const isAtestado = doc.type === "atestado";
+  const feminine = doc.type === "receita" || doc.type === "declaracao";
+  const typeLabel = DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type;
+
 
   return (
     <div className="min-h-screen bg-primary-soft/40 pb-16">
