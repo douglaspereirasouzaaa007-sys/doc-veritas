@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { normalizeCode, prettyCode, DOCUMENT_STATUSES } from "@/lib/documents.shared";
+import { normalizeLookup, DOCUMENT_STATUSES } from "@/lib/documents.shared";
 import { authenticateApiKey, CORS_HEADERS, json } from "@/lib/api-keys.server";
 
 const FIELDS =
-  "code, type, status, establishment_name, establishment_address, patient_name, patient_birth_date, patient_cpf, professional_name, professional_council, professional_council_number, professional_specialty, body_text, cid, leave_start_date, leave_end_date, leave_days, issued_at, metadata, created_at";
+  "token, code, type, status, establishment_name, establishment_address, patient_name, patient_birth_date, patient_cpf, professional_name, professional_council, professional_council_number, professional_specialty, body_text, cid, leave_start_date, leave_end_date, leave_days, issued_at, metadata, created_at";
 
 export const Route = createFileRoute("/api/public/v1/documents/$code")({
   server: {
@@ -15,21 +15,24 @@ export const Route = createFileRoute("/api/public/v1/documents/$code")({
         const auth = await authenticateApiKey(request);
         if (!auth.ok) return json({ error: auth.error }, auth.status);
 
-        const code = prettyCode(normalizeCode(params.code));
+        const lookup = normalizeLookup(params.code);
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data, error } = await supabaseAdmin
           .from("documents")
           .select(FIELDS)
-          .eq("code", code)
+          .eq(lookup.kind, lookup.value)
           .maybeSingle();
         if (error) return json({ error: error.message }, 500);
-        if (!data) return json({ error: "Documento não encontrado.", code }, 404);
+        if (!data) return json({ error: "Documento não encontrado.", code: lookup.value }, 404);
 
         const origin = new URL(request.url).origin;
         return json({
           data,
-          verification_url: `${origin}/d/${code}`,
-          qrcode_url: `${origin}/api/public/v1/qrcode/${code}`,
+          token: data.token,
+          access_code: data.code,
+          verification_url: `${origin}/d/${data.code}`,
+          token_url: `${origin}/d/${data.token}`,
+          qrcode_url: `${origin}/api/public/v1/qrcode/${data.code}`,
         });
       },
 
@@ -52,12 +55,12 @@ export const Route = createFileRoute("/api/public/v1/documents/$code")({
           .safeParse(body);
         if (!parsed.success) return json({ error: "Dados inválidos." }, 422);
 
-        const code = prettyCode(normalizeCode(params.code));
+        const lookup = normalizeLookup(params.code);
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data, error } = await supabaseAdmin
           .from("documents")
           .update(parsed.data)
-          .eq("code", code)
+          .eq(lookup.kind, lookup.value)
           .select(FIELDS)
           .maybeSingle();
         if (error) return json({ error: error.message }, 500);
@@ -69,14 +72,14 @@ export const Route = createFileRoute("/api/public/v1/documents/$code")({
         const auth = await authenticateApiKey(request);
         if (!auth.ok) return json({ error: auth.error }, auth.status);
 
-        const code = prettyCode(normalizeCode(params.code));
+        const lookup = normalizeLookup(params.code);
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { error } = await supabaseAdmin
           .from("documents")
           .update({ status: "revogado" })
-          .eq("code", code);
+          .eq(lookup.kind, lookup.value);
         if (error) return json({ error: error.message }, 500);
-        return json({ ok: true, status: "revogado", code });
+        return json({ ok: true, status: "revogado", code: lookup.value });
       },
     },
   },

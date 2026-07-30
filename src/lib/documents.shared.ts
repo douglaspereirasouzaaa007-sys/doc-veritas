@@ -59,7 +59,36 @@ export function prettyCode(code: string): string {
   return n.length === 12 ? `${n.slice(0, 4)}-${n.slice(4, 8)}-${n.slice(8, 12)}` : code;
 }
 
+/** Prefixos de token por tipo de documento (ex.: ATE-161, REC-22144, LAU-16105). */
+export const TOKEN_PREFIX: Record<(typeof DOCUMENT_TYPES)[number], string> = {
+  atestado: "ATE",
+  receita: "REC",
+  laudo: "LAU",
+  exame: "EXA",
+  declaracao: "DEC",
+};
+
+const TOKEN_RE = /^(ATE|REC|LAU|EXA|DEC)-?\d{1,10}$/;
+
+/** Detecta se o valor informado é um token (ATE-161) ou um código de acesso. */
+export function isDocumentToken(value: string): boolean {
+  return TOKEN_RE.test(value.trim().toUpperCase().replace(/\s+/g, ""));
+}
+
+/** Normaliza um token para o formato canônico PREFIXO-NUMERO. */
+export function normalizeToken(value: string): string {
+  const raw = value.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  return `${raw.slice(0, 3)}-${raw.slice(3).replace(/^0+(?=\d)/, "")}`;
+}
+
+/** Aceita token ou código de acesso e devolve a chave de busca canônica. */
+export function normalizeLookup(value: string): { kind: "token" | "code"; value: string } {
+  if (isDocumentToken(value)) return { kind: "token", value: normalizeToken(value) };
+  return { kind: "code", value: prettyCode(normalizeCode(value)) };
+}
+
 export type PublicDocument = {
+  token: string;
   code: string;
   type: string;
   status: string;

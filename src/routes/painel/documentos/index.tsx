@@ -75,7 +75,7 @@ function DocumentosPage() {
 
       <div className="flex flex-wrap gap-3">
         <Input
-          placeholder="Buscar por paciente, código ou CPF"
+          placeholder="Buscar por paciente, token, código ou CPF"
           value={search}
           onChange={(e) => {
             setPage(1);
@@ -127,7 +127,8 @@ function DocumentosPage() {
         <table className="w-full text-sm">
           <thead className="border-b border-border text-left text-xs uppercase text-muted-foreground">
             <tr>
-              <th className="px-4 py-3">Código</th>
+              <th className="px-4 py-3">Token</th>
+              <th className="px-4 py-3">Código de acesso</th>
               <th className="px-4 py-3">Paciente</th>
               <th className="px-4 py-3">Tipo</th>
               <th className="px-4 py-3">Emissão</th>
@@ -138,20 +139,23 @@ function DocumentosPage() {
           <tbody>
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
                   Carregando...
                 </td>
               </tr>
             ) : (data?.rows.length ?? 0) === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">
                   Nenhum documento encontrado.
                 </td>
               </tr>
             ) : (
               data?.rows.map((row) => (
                 <tr key={row.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3 font-mono text-xs text-primary">{row.code}</td>
+                  <td className="px-4 py-3 font-mono text-xs font-semibold text-primary">
+                    {row.token}
+                  </td>
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.code}</td>
                   <td className="px-4 py-3">
                     <p className="font-medium text-primary">{row.patient_name}</p>
                     <p className="text-xs text-muted-foreground">{formatCPF(row.patient_cpf)}</p>

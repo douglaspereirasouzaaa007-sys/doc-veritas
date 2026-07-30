@@ -7,7 +7,7 @@ import {
 import { authenticateApiKey, CORS_HEADERS, json } from "@/lib/api-keys.server";
 
 const PUBLIC_FIELDS =
-  "code, type, status, establishment_name, establishment_address, patient_name, patient_birth_date, patient_cpf, professional_name, professional_council, professional_council_number, professional_specialty, body_text, cid, leave_start_date, leave_end_date, leave_days, issued_at, metadata, created_at";
+  "token, code, type, status, establishment_name, establishment_address, patient_name, patient_birth_date, patient_cpf, professional_name, professional_council, professional_council_number, professional_specialty, body_text, cid, leave_start_date, leave_end_date, leave_days, issued_at, metadata, created_at";
 
 export const Route = createFileRoute("/api/public/v1/documents")({
   server: {
@@ -109,8 +109,12 @@ export const Route = createFileRoute("/api/public/v1/documents")({
         return json(
           {
             data,
+            token: data.token,
+            access_code: data.code,
             verification_url: `${origin}/d/${data.code}`,
+            token_url: `${origin}/d/${data.token}`,
             qrcode_url: `${origin}/api/public/v1/qrcode/${data.code}`,
+            qrcode_png_url: `${origin}/api/public/v1/qrcode/${data.code}?format=png`,
           },
           201,
         );

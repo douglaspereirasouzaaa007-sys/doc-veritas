@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { normalizeCode, prettyCode } from "@/lib/documents.shared";
+import { isDocumentToken, normalizeCode, normalizeLookup } from "@/lib/documents.shared";
 
 export const Route = createFileRoute("/verificar")({
   head: () => ({
@@ -35,13 +35,13 @@ function Verificar() {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const normalized = normalizeCode(code);
-    if (normalized.length !== 12) {
-      setError("O código deve ter 12 caracteres (ex.: ABCD-2345-EFGH).");
+    const raw = code.trim();
+    if (!isDocumentToken(raw) && normalizeCode(raw).length !== 12) {
+      setError("Informe o token (ex.: ATE-161) ou o código de acesso de 12 caracteres.");
       return;
     }
     setError(null);
-    navigate({ to: "/d/$code", params: { code: prettyCode(normalized) } });
+    navigate({ to: "/d/$code", params: { code: normalizeLookup(raw).value } });
   }
 
   return (
@@ -55,7 +55,7 @@ function Verificar() {
               Verificar documento
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Informe o código de verificação impresso no rodapé do atestado, receita ou laudo.
+              Informe o token do documento (ex.: ATE-161, REC-22144, LAU-16105) ou o código de acesso impresso no rodapé do atestado, receita ou laudo.
             </p>
 
             <form onSubmit={submit} className="mt-8 space-y-4">
@@ -63,9 +63,9 @@ function Verificar() {
                 autoFocus
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                placeholder="XXXX-XXXX-XXXX"
+                placeholder="ATE-161 ou XXXX-XXXX-XXXX"
                 maxLength={20}
-                aria-label="Código de verificação"
+                aria-label="Token ou código de acesso"
                 className="h-14 text-center font-mono text-lg tracking-[0.3em]"
               />
               {error ? <p className="text-sm text-destructive">{error}</p> : null}

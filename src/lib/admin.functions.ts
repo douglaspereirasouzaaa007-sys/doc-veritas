@@ -82,7 +82,7 @@ export const listDocuments = createServerFn({ method: "GET" })
     let query = context.supabase
       .from("documents")
       .select(
-        "id, code, type, status, patient_name, patient_cpf, establishment_name, professional_name, issued_at, leave_days, views_count, created_at",
+        "id, token, code, type, status, patient_name, patient_cpf, establishment_name, professional_name, issued_at, leave_days, views_count, created_at",
         { count: "exact" },
       )
       .order("created_at", { ascending: false });
@@ -90,7 +90,7 @@ export const listDocuments = createServerFn({ method: "GET" })
     if (data.search) {
       const term = `%${data.search}%`;
       query = query.or(
-        `patient_name.ilike.${term},code.ilike.${term},patient_cpf.ilike.${term},establishment_name.ilike.${term}`,
+        `patient_name.ilike.${term},token.ilike.${term},code.ilike.${term},patient_cpf.ilike.${term},establishment_name.ilike.${term}`,
       );
     }
     if (data.type && data.type !== "todos")
@@ -136,19 +136,19 @@ export const saveDocument = createServerFn({ method: "POST" })
         .from("documents")
         .update(payload)
         .eq("id", data.id)
-        .select("id, code")
+        .select("id, token, code")
         .maybeSingle();
       if (error) throw new Error(error.message);
-      return { id: row?.id ?? data.id, code: row?.code ?? "" };
+      return { id: row?.id ?? data.id, code: row?.code ?? "", token: row?.token ?? "" };
     }
 
     const { data: row, error } = await context.supabase
       .from("documents")
       .insert({ ...payload, code: generateDocumentCode(), created_by: context.userId })
-      .select("id, code")
+      .select("id, token, code")
       .single();
     if (error) throw new Error(error.message);
-    return { id: row.id, code: row.code };
+    return { id: row.id, code: row.code, token: row.token };
   });
 
 export const setDocumentStatus = createServerFn({ method: "POST" })

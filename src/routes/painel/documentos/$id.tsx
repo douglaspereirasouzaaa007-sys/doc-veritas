@@ -46,14 +46,17 @@ function EditarDocumento() {
   if (isLoading) return <p className="text-sm text-muted-foreground">Carregando documento...</p>;
   if (!data?.document) return <p className="text-sm text-muted-foreground">Documento não encontrado.</p>;
 
-  const code = (data.document as { code: string }).code;
+  const { code, token } = data.document as { code: string; token: string };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-semibold text-primary">Editar documento</h1>
-          <p className="font-mono text-sm text-muted-foreground">{code}</p>
+          <p className="font-mono text-sm text-muted-foreground">
+            Token <span className="font-semibold text-primary">{token}</span> • Código de acesso{" "}
+            <span className="font-semibold text-primary">{code}</span>
+          </p>
         </div>
         <Button asChild variant="outline">
           <a href={`/d/${code}`} target="_blank" rel="noreferrer">

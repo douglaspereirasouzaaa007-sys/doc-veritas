@@ -18,7 +18,7 @@ function NovoDocumento() {
   const mutation = useMutation({
     mutationFn: () => save({ data: { values: cleanup(values) } }),
     onSuccess: (res) => {
-      toast.success(`Documento criado. Código ${res.code}`);
+      toast.success(`Documento criado. Token ${res.token} • Código ${res.code}`);
       navigate({ to: "/painel/documentos" });
     },
     onError: (e: Error) => toast.error(e.message),
