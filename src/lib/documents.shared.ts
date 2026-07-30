@@ -48,6 +48,36 @@ function pick(source: Record<string, unknown>, keys: string[]): unknown {
   return undefined;
 }
 
+/** Converte datas em formato brasileiro (DD/MM/AAAA) para ISO (AAAA-MM-DD). */
+export function brDateToISO(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const v = value.trim();
+  const br = /^(\d{2})[/.-](\d{2})[/.-](\d{4})$/.exec(v);
+  if (br) return `${br[3]}-${br[2]}-${br[1]}`;
+  return v;
+}
+
+/** Converte data/hora brasileira (DD/MM/AAAA HH:mm[:ss]) para ISO com fuso de Brasília. */
+export function brDateTimeToISO(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  const v = value.trim();
+  const m = /^(\d{2})[/.-](\d{2})[/.-](\d{4})(?:[\sT]+(\d{2}):(\d{2})(?::(\d{2}))?)?$/.exec(v);
+  if (!m) return v;
+  const [, d, mo, y, hh = "00", mi = "00", ss = "00"] = m;
+  return `${y}-${mo}-${d}T${hh}:${mi}:${ss}-03:00`;
+}
+
+/** Aceita números em formato brasileiro (1.234,56 → 1234.56). */
+function brNumber(value: unknown): unknown {
+  if (typeof value === "number") return value;
+  if (typeof value !== "string") return value;
+  const v = value.trim().replace(/\./g, "").replace(",", ".");
+  const parsed = Number(v);
+  return Number.isFinite(parsed) ? parsed : value;
+}
+
+const DATE_FIELDS = ["patient_birth_date", "leave_start_date", "leave_end_date"] as const;
+
 export function normalizeDocumentPayload(input: unknown): unknown {
   if (typeof input !== "object" || input === null || Array.isArray(input)) return input;
   const src = { ...(input as Record<string, unknown>) };
@@ -73,15 +103,46 @@ export function normalizeDocumentPayload(input: unknown): unknown {
   const specialty = pick(src, ["professional_specialty", "especialidade", "specialty"]);
   if (specialty !== undefined) src.professional_specialty = String(specialty);
 
-  const patient = pick(src, ["patient_name", "paciente", "patient"]);
+  const patient = pick(src, ["patient_name", "paciente", "patient", "nome_paciente"]);
   if (patient !== undefined) src.patient_name = String(patient);
 
-  const cpf = pick(src, ["patient_cpf", "cpf"]);
+  const cpf = pick(src, ["patient_cpf", "cpf", "cpf_paciente"]);
   if (cpf !== undefined) src.patient_cpf = String(cpf);
 
-  if (typeof src.leave_days === "string" && src.leave_days.trim() !== "") {
-    const parsed = Number(src.leave_days);
-    if (Number.isFinite(parsed)) src.leave_days = parsed;
+  const birth = pick(src, [
+    "patient_birth_date",
+    "data_nascimento",
+    "nascimento",
+    "data_de_nascimento",
+  ]);
+  if (birth !== undefined) src.patient_birth_date = birth;
+
+  const estName = pick(src, ["establishment_name", "estabelecimento", "clinica", "local"]);
+  if (estName !== undefined) src.establishment_name = String(estName);
+
+  const estAddress = pick(src, ["establishment_address", "endereco", "endereço"]);
+  if (estAddress !== undefined) src.establishment_address = String(estAddress);
+
+  const start = pick(src, ["leave_start_date", "data_inicio", "inicio", "afastamento_inicio"]);
+  if (start !== undefined) src.leave_start_date = start;
+
+  const end = pick(src, ["leave_end_date", "data_fim", "fim", "termino", "afastamento_fim"]);
+  if (end !== undefined) src.leave_end_date = end;
+
+  const days = pick(src, ["leave_days", "dias", "dias_afastamento", "quantidade_dias"]);
+  if (days !== undefined) src.leave_days = days;
+
+  const issued = pick(src, ["issued_at", "data_emissao", "emitido_em", "emissao"]);
+  if (issued !== undefined) src.issued_at = brDateTimeToISO(issued);
+
+  // Datas no padrão brasileiro → ISO
+  for (const field of DATE_FIELDS) {
+    if (src[field] !== undefined && src[field] !== null) src[field] = brDateToISO(src[field]);
+  }
+
+  if (src.leave_days !== undefined && src.leave_days !== null && src.leave_days !== "") {
+    const parsed = brNumber(src.leave_days);
+    if (typeof parsed === "number") src.leave_days = Math.round(parsed);
   }
 
   // Calcula automaticamente os dias de afastamento quando não informados
@@ -90,16 +151,16 @@ export function normalizeDocumentPayload(input: unknown): unknown {
     typeof src.leave_start_date === "string" &&
     typeof src.leave_end_date === "string"
   ) {
-    const start = new Date(`${src.leave_start_date}T00:00:00`);
-    const end = new Date(`${src.leave_end_date}T00:00:00`);
-    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end >= start) {
-      src.leave_days = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+    const start2 = new Date(`${src.leave_start_date}T00:00:00`);
+    const end2 = new Date(`${src.leave_end_date}T00:00:00`);
+    if (!Number.isNaN(start2.getTime()) && !Number.isNaN(end2.getTime()) && end2 >= start2) {
+      src.leave_days = Math.round((end2.getTime() - start2.getTime()) / 86400000) + 1;
     }
   }
 
-
   return src;
 }
+
 
 export const documentInputSchema = z.preprocess(normalizeDocumentPayload, baseDocumentSchema);
 

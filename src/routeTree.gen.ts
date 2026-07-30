@@ -21,9 +21,19 @@ import { Route as PainelVerificacoesRouteImport } from './routes/painel/verifica
 import { Route as PainelDocumentosIndexRouteImport } from './routes/painel/documentos/index'
 import { Route as PainelDocumentosIdRouteImport } from './routes/painel/documentos/$id'
 import { Route as PainelDocumentosNovoRouteImport } from './routes/painel/documentos/novo'
+import { Route as ApiPublicV1AtestadosRouteImport } from './routes/api/public/v1/atestados'
+import { Route as ApiPublicV1DeclaracoesRouteImport } from './routes/api/public/v1/declaracoes'
 import { Route as ApiPublicV1DocumentsRouteImport } from './routes/api/public/v1/documents'
+import { Route as ApiPublicV1ExamesRouteImport } from './routes/api/public/v1/exames'
+import { Route as ApiPublicV1LaudosRouteImport } from './routes/api/public/v1/laudos'
+import { Route as ApiPublicV1ReceitasRouteImport } from './routes/api/public/v1/receitas'
+import { Route as ApiPublicV1AtestadosCodeRouteImport } from './routes/api/public/v1/atestados.$code'
+import { Route as ApiPublicV1DeclaracoesCodeRouteImport } from './routes/api/public/v1/declaracoes.$code'
 import { Route as ApiPublicV1DocumentsCodeRouteImport } from './routes/api/public/v1/documents.$code'
+import { Route as ApiPublicV1ExamesCodeRouteImport } from './routes/api/public/v1/exames.$code'
+import { Route as ApiPublicV1LaudosCodeRouteImport } from './routes/api/public/v1/laudos.$code'
 import { Route as ApiPublicV1QrcodeCodeRouteImport } from './routes/api/public/v1/qrcode.$code'
+import { Route as ApiPublicV1ReceitasCodeRouteImport } from './routes/api/public/v1/receitas.$code'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -85,21 +95,73 @@ const PainelDocumentosNovoRoute = PainelDocumentosNovoRouteImport.update({
   path: '/documentos/novo',
   getParentRoute: () => PainelRouteRoute,
 } as any)
+const ApiPublicV1AtestadosRoute = ApiPublicV1AtestadosRouteImport.update({
+  id: '/api/public/v1/atestados',
+  path: '/api/public/v1/atestados',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1DeclaracoesRoute = ApiPublicV1DeclaracoesRouteImport.update({
+  id: '/api/public/v1/declaracoes',
+  path: '/api/public/v1/declaracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicV1DocumentsRoute = ApiPublicV1DocumentsRouteImport.update({
   id: '/api/public/v1/documents',
   path: '/api/public/v1/documents',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicV1ExamesRoute = ApiPublicV1ExamesRouteImport.update({
+  id: '/api/public/v1/exames',
+  path: '/api/public/v1/exames',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1LaudosRoute = ApiPublicV1LaudosRouteImport.update({
+  id: '/api/public/v1/laudos',
+  path: '/api/public/v1/laudos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1ReceitasRoute = ApiPublicV1ReceitasRouteImport.update({
+  id: '/api/public/v1/receitas',
+  path: '/api/public/v1/receitas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1AtestadosCodeRoute =
+  ApiPublicV1AtestadosCodeRouteImport.update({
+    id: '/$code',
+    path: '/$code',
+    getParentRoute: () => ApiPublicV1AtestadosRoute,
+  } as any)
+const ApiPublicV1DeclaracoesCodeRoute =
+  ApiPublicV1DeclaracoesCodeRouteImport.update({
+    id: '/$code',
+    path: '/$code',
+    getParentRoute: () => ApiPublicV1DeclaracoesRoute,
+  } as any)
 const ApiPublicV1DocumentsCodeRoute =
   ApiPublicV1DocumentsCodeRouteImport.update({
     id: '/$code',
     path: '/$code',
     getParentRoute: () => ApiPublicV1DocumentsRoute,
   } as any)
+const ApiPublicV1ExamesCodeRoute = ApiPublicV1ExamesCodeRouteImport.update({
+  id: '/$code',
+  path: '/$code',
+  getParentRoute: () => ApiPublicV1ExamesRoute,
+} as any)
+const ApiPublicV1LaudosCodeRoute = ApiPublicV1LaudosCodeRouteImport.update({
+  id: '/$code',
+  path: '/$code',
+  getParentRoute: () => ApiPublicV1LaudosRoute,
+} as any)
 const ApiPublicV1QrcodeCodeRoute = ApiPublicV1QrcodeCodeRouteImport.update({
   id: '/api/public/v1/qrcode/$code',
   path: '/api/public/v1/qrcode/$code',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicV1ReceitasCodeRoute = ApiPublicV1ReceitasCodeRouteImport.update({
+  id: '/$code',
+  path: '/$code',
+  getParentRoute: () => ApiPublicV1ReceitasRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -115,9 +177,19 @@ export interface FileRoutesByFullPath {
   '/painel/documentos/$id': typeof PainelDocumentosIdRoute
   '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
   '/painel/documentos/': typeof PainelDocumentosIndexRoute
+  '/api/public/v1/atestados': typeof ApiPublicV1AtestadosRouteWithChildren
+  '/api/public/v1/declaracoes': typeof ApiPublicV1DeclaracoesRouteWithChildren
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
+  '/api/public/v1/exames': typeof ApiPublicV1ExamesRouteWithChildren
+  '/api/public/v1/laudos': typeof ApiPublicV1LaudosRouteWithChildren
+  '/api/public/v1/receitas': typeof ApiPublicV1ReceitasRouteWithChildren
+  '/api/public/v1/atestados/$code': typeof ApiPublicV1AtestadosCodeRoute
+  '/api/public/v1/declaracoes/$code': typeof ApiPublicV1DeclaracoesCodeRoute
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
+  '/api/public/v1/exames/$code': typeof ApiPublicV1ExamesCodeRoute
+  '/api/public/v1/laudos/$code': typeof ApiPublicV1LaudosCodeRoute
   '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
+  '/api/public/v1/receitas/$code': typeof ApiPublicV1ReceitasCodeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -131,9 +203,19 @@ export interface FileRoutesByTo {
   '/painel/documentos/$id': typeof PainelDocumentosIdRoute
   '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
   '/painel/documentos': typeof PainelDocumentosIndexRoute
+  '/api/public/v1/atestados': typeof ApiPublicV1AtestadosRouteWithChildren
+  '/api/public/v1/declaracoes': typeof ApiPublicV1DeclaracoesRouteWithChildren
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
+  '/api/public/v1/exames': typeof ApiPublicV1ExamesRouteWithChildren
+  '/api/public/v1/laudos': typeof ApiPublicV1LaudosRouteWithChildren
+  '/api/public/v1/receitas': typeof ApiPublicV1ReceitasRouteWithChildren
+  '/api/public/v1/atestados/$code': typeof ApiPublicV1AtestadosCodeRoute
+  '/api/public/v1/declaracoes/$code': typeof ApiPublicV1DeclaracoesCodeRoute
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
+  '/api/public/v1/exames/$code': typeof ApiPublicV1ExamesCodeRoute
+  '/api/public/v1/laudos/$code': typeof ApiPublicV1LaudosCodeRoute
   '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
+  '/api/public/v1/receitas/$code': typeof ApiPublicV1ReceitasCodeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -149,9 +231,19 @@ export interface FileRoutesById {
   '/painel/documentos/$id': typeof PainelDocumentosIdRoute
   '/painel/documentos/novo': typeof PainelDocumentosNovoRoute
   '/painel/documentos/': typeof PainelDocumentosIndexRoute
+  '/api/public/v1/atestados': typeof ApiPublicV1AtestadosRouteWithChildren
+  '/api/public/v1/declaracoes': typeof ApiPublicV1DeclaracoesRouteWithChildren
   '/api/public/v1/documents': typeof ApiPublicV1DocumentsRouteWithChildren
+  '/api/public/v1/exames': typeof ApiPublicV1ExamesRouteWithChildren
+  '/api/public/v1/laudos': typeof ApiPublicV1LaudosRouteWithChildren
+  '/api/public/v1/receitas': typeof ApiPublicV1ReceitasRouteWithChildren
+  '/api/public/v1/atestados/$code': typeof ApiPublicV1AtestadosCodeRoute
+  '/api/public/v1/declaracoes/$code': typeof ApiPublicV1DeclaracoesCodeRoute
   '/api/public/v1/documents/$code': typeof ApiPublicV1DocumentsCodeRoute
+  '/api/public/v1/exames/$code': typeof ApiPublicV1ExamesCodeRoute
+  '/api/public/v1/laudos/$code': typeof ApiPublicV1LaudosCodeRoute
   '/api/public/v1/qrcode/$code': typeof ApiPublicV1QrcodeCodeRoute
+  '/api/public/v1/receitas/$code': typeof ApiPublicV1ReceitasCodeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -168,9 +260,19 @@ export interface FileRouteTypes {
     | '/painel/documentos/$id'
     | '/painel/documentos/novo'
     | '/painel/documentos/'
+    | '/api/public/v1/atestados'
+    | '/api/public/v1/declaracoes'
     | '/api/public/v1/documents'
+    | '/api/public/v1/exames'
+    | '/api/public/v1/laudos'
+    | '/api/public/v1/receitas'
+    | '/api/public/v1/atestados/$code'
+    | '/api/public/v1/declaracoes/$code'
     | '/api/public/v1/documents/$code'
+    | '/api/public/v1/exames/$code'
+    | '/api/public/v1/laudos/$code'
     | '/api/public/v1/qrcode/$code'
+    | '/api/public/v1/receitas/$code'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -184,9 +286,19 @@ export interface FileRouteTypes {
     | '/painel/documentos/$id'
     | '/painel/documentos/novo'
     | '/painel/documentos'
+    | '/api/public/v1/atestados'
+    | '/api/public/v1/declaracoes'
     | '/api/public/v1/documents'
+    | '/api/public/v1/exames'
+    | '/api/public/v1/laudos'
+    | '/api/public/v1/receitas'
+    | '/api/public/v1/atestados/$code'
+    | '/api/public/v1/declaracoes/$code'
     | '/api/public/v1/documents/$code'
+    | '/api/public/v1/exames/$code'
+    | '/api/public/v1/laudos/$code'
     | '/api/public/v1/qrcode/$code'
+    | '/api/public/v1/receitas/$code'
   id:
     | '__root__'
     | '/'
@@ -201,9 +313,19 @@ export interface FileRouteTypes {
     | '/painel/documentos/$id'
     | '/painel/documentos/novo'
     | '/painel/documentos/'
+    | '/api/public/v1/atestados'
+    | '/api/public/v1/declaracoes'
     | '/api/public/v1/documents'
+    | '/api/public/v1/exames'
+    | '/api/public/v1/laudos'
+    | '/api/public/v1/receitas'
+    | '/api/public/v1/atestados/$code'
+    | '/api/public/v1/declaracoes/$code'
     | '/api/public/v1/documents/$code'
+    | '/api/public/v1/exames/$code'
+    | '/api/public/v1/laudos/$code'
     | '/api/public/v1/qrcode/$code'
+    | '/api/public/v1/receitas/$code'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -212,7 +334,12 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   VerificarRoute: typeof VerificarRoute
   DCodeRoute: typeof DCodeRoute
+  ApiPublicV1AtestadosRoute: typeof ApiPublicV1AtestadosRouteWithChildren
+  ApiPublicV1DeclaracoesRoute: typeof ApiPublicV1DeclaracoesRouteWithChildren
   ApiPublicV1DocumentsRoute: typeof ApiPublicV1DocumentsRouteWithChildren
+  ApiPublicV1ExamesRoute: typeof ApiPublicV1ExamesRouteWithChildren
+  ApiPublicV1LaudosRoute: typeof ApiPublicV1LaudosRouteWithChildren
+  ApiPublicV1ReceitasRoute: typeof ApiPublicV1ReceitasRouteWithChildren
   ApiPublicV1QrcodeCodeRoute: typeof ApiPublicV1QrcodeCodeRoute
 }
 
@@ -302,12 +429,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelDocumentosNovoRouteImport
       parentRoute: typeof PainelRouteRoute
     }
+    '/api/public/v1/atestados': {
+      id: '/api/public/v1/atestados'
+      path: '/api/public/v1/atestados'
+      fullPath: '/api/public/v1/atestados'
+      preLoaderRoute: typeof ApiPublicV1AtestadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/declaracoes': {
+      id: '/api/public/v1/declaracoes'
+      path: '/api/public/v1/declaracoes'
+      fullPath: '/api/public/v1/declaracoes'
+      preLoaderRoute: typeof ApiPublicV1DeclaracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/v1/documents': {
       id: '/api/public/v1/documents'
       path: '/api/public/v1/documents'
       fullPath: '/api/public/v1/documents'
       preLoaderRoute: typeof ApiPublicV1DocumentsRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/exames': {
+      id: '/api/public/v1/exames'
+      path: '/api/public/v1/exames'
+      fullPath: '/api/public/v1/exames'
+      preLoaderRoute: typeof ApiPublicV1ExamesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/laudos': {
+      id: '/api/public/v1/laudos'
+      path: '/api/public/v1/laudos'
+      fullPath: '/api/public/v1/laudos'
+      preLoaderRoute: typeof ApiPublicV1LaudosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/receitas': {
+      id: '/api/public/v1/receitas'
+      path: '/api/public/v1/receitas'
+      fullPath: '/api/public/v1/receitas'
+      preLoaderRoute: typeof ApiPublicV1ReceitasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/atestados/$code': {
+      id: '/api/public/v1/atestados/$code'
+      path: '/$code'
+      fullPath: '/api/public/v1/atestados/$code'
+      preLoaderRoute: typeof ApiPublicV1AtestadosCodeRouteImport
+      parentRoute: typeof ApiPublicV1AtestadosRoute
+    }
+    '/api/public/v1/declaracoes/$code': {
+      id: '/api/public/v1/declaracoes/$code'
+      path: '/$code'
+      fullPath: '/api/public/v1/declaracoes/$code'
+      preLoaderRoute: typeof ApiPublicV1DeclaracoesCodeRouteImport
+      parentRoute: typeof ApiPublicV1DeclaracoesRoute
     }
     '/api/public/v1/documents/$code': {
       id: '/api/public/v1/documents/$code'
@@ -316,12 +492,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicV1DocumentsCodeRouteImport
       parentRoute: typeof ApiPublicV1DocumentsRoute
     }
+    '/api/public/v1/exames/$code': {
+      id: '/api/public/v1/exames/$code'
+      path: '/$code'
+      fullPath: '/api/public/v1/exames/$code'
+      preLoaderRoute: typeof ApiPublicV1ExamesCodeRouteImport
+      parentRoute: typeof ApiPublicV1ExamesRoute
+    }
+    '/api/public/v1/laudos/$code': {
+      id: '/api/public/v1/laudos/$code'
+      path: '/$code'
+      fullPath: '/api/public/v1/laudos/$code'
+      preLoaderRoute: typeof ApiPublicV1LaudosCodeRouteImport
+      parentRoute: typeof ApiPublicV1LaudosRoute
+    }
     '/api/public/v1/qrcode/$code': {
       id: '/api/public/v1/qrcode/$code'
       path: '/api/public/v1/qrcode/$code'
       fullPath: '/api/public/v1/qrcode/$code'
       preLoaderRoute: typeof ApiPublicV1QrcodeCodeRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/public/v1/receitas/$code': {
+      id: '/api/public/v1/receitas/$code'
+      path: '/$code'
+      fullPath: '/api/public/v1/receitas/$code'
+      preLoaderRoute: typeof ApiPublicV1ReceitasCodeRouteImport
+      parentRoute: typeof ApiPublicV1ReceitasRoute
     }
   }
 }
@@ -350,6 +547,31 @@ const PainelRouteRouteWithChildren = PainelRouteRoute._addFileChildren(
   PainelRouteRouteChildren,
 )
 
+interface ApiPublicV1AtestadosRouteChildren {
+  ApiPublicV1AtestadosCodeRoute: typeof ApiPublicV1AtestadosCodeRoute
+}
+
+const ApiPublicV1AtestadosRouteChildren: ApiPublicV1AtestadosRouteChildren = {
+  ApiPublicV1AtestadosCodeRoute: ApiPublicV1AtestadosCodeRoute,
+}
+
+const ApiPublicV1AtestadosRouteWithChildren =
+  ApiPublicV1AtestadosRoute._addFileChildren(ApiPublicV1AtestadosRouteChildren)
+
+interface ApiPublicV1DeclaracoesRouteChildren {
+  ApiPublicV1DeclaracoesCodeRoute: typeof ApiPublicV1DeclaracoesCodeRoute
+}
+
+const ApiPublicV1DeclaracoesRouteChildren: ApiPublicV1DeclaracoesRouteChildren =
+  {
+    ApiPublicV1DeclaracoesCodeRoute: ApiPublicV1DeclaracoesCodeRoute,
+  }
+
+const ApiPublicV1DeclaracoesRouteWithChildren =
+  ApiPublicV1DeclaracoesRoute._addFileChildren(
+    ApiPublicV1DeclaracoesRouteChildren,
+  )
+
 interface ApiPublicV1DocumentsRouteChildren {
   ApiPublicV1DocumentsCodeRoute: typeof ApiPublicV1DocumentsCodeRoute
 }
@@ -361,13 +583,51 @@ const ApiPublicV1DocumentsRouteChildren: ApiPublicV1DocumentsRouteChildren = {
 const ApiPublicV1DocumentsRouteWithChildren =
   ApiPublicV1DocumentsRoute._addFileChildren(ApiPublicV1DocumentsRouteChildren)
 
+interface ApiPublicV1ExamesRouteChildren {
+  ApiPublicV1ExamesCodeRoute: typeof ApiPublicV1ExamesCodeRoute
+}
+
+const ApiPublicV1ExamesRouteChildren: ApiPublicV1ExamesRouteChildren = {
+  ApiPublicV1ExamesCodeRoute: ApiPublicV1ExamesCodeRoute,
+}
+
+const ApiPublicV1ExamesRouteWithChildren =
+  ApiPublicV1ExamesRoute._addFileChildren(ApiPublicV1ExamesRouteChildren)
+
+interface ApiPublicV1LaudosRouteChildren {
+  ApiPublicV1LaudosCodeRoute: typeof ApiPublicV1LaudosCodeRoute
+}
+
+const ApiPublicV1LaudosRouteChildren: ApiPublicV1LaudosRouteChildren = {
+  ApiPublicV1LaudosCodeRoute: ApiPublicV1LaudosCodeRoute,
+}
+
+const ApiPublicV1LaudosRouteWithChildren =
+  ApiPublicV1LaudosRoute._addFileChildren(ApiPublicV1LaudosRouteChildren)
+
+interface ApiPublicV1ReceitasRouteChildren {
+  ApiPublicV1ReceitasCodeRoute: typeof ApiPublicV1ReceitasCodeRoute
+}
+
+const ApiPublicV1ReceitasRouteChildren: ApiPublicV1ReceitasRouteChildren = {
+  ApiPublicV1ReceitasCodeRoute: ApiPublicV1ReceitasCodeRoute,
+}
+
+const ApiPublicV1ReceitasRouteWithChildren =
+  ApiPublicV1ReceitasRoute._addFileChildren(ApiPublicV1ReceitasRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PainelRouteRoute: PainelRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   VerificarRoute: VerificarRoute,
   DCodeRoute: DCodeRoute,
+  ApiPublicV1AtestadosRoute: ApiPublicV1AtestadosRouteWithChildren,
+  ApiPublicV1DeclaracoesRoute: ApiPublicV1DeclaracoesRouteWithChildren,
   ApiPublicV1DocumentsRoute: ApiPublicV1DocumentsRouteWithChildren,
+  ApiPublicV1ExamesRoute: ApiPublicV1ExamesRouteWithChildren,
+  ApiPublicV1LaudosRoute: ApiPublicV1LaudosRouteWithChildren,
+  ApiPublicV1ReceitasRoute: ApiPublicV1ReceitasRouteWithChildren,
   ApiPublicV1QrcodeCodeRoute: ApiPublicV1QrcodeCodeRoute,
 }
 export const routeTree = rootRouteImport

@@ -242,11 +242,108 @@ function ApiPage() {
 }`}</Code>
         </Endpoint>
 
+        <div className="rounded-xl border border-border bg-card p-6">
+          <h3 className="font-display text-lg font-semibold text-primary">
+            Endpoints por tipo de documento
+          </h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Cada tipo tem seu próprio endpoint. Nesses endpoints o campo{" "}
+            <code className="font-mono">type</code> é opcional — ele é definido automaticamente.
+          </p>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-border text-left text-xs uppercase text-muted-foreground">
+                <tr>
+                  <th className="py-2 pr-4">Documento</th>
+                  <th className="py-2 pr-4">Coleção</th>
+                  <th className="py-2 pr-4">Item</th>
+                  <th className="py-2">Token</th>
+                </tr>
+              </thead>
+              <tbody className="text-muted-foreground">
+                {[
+                  ["Atestados", "/api/public/v1/atestados", "ATE-161"],
+                  ["Receitas", "/api/public/v1/receitas", "REC-22144"],
+                  ["Laudos", "/api/public/v1/laudos", "LAU-16105"],
+                  ["Exames", "/api/public/v1/exames", "EXA-101"],
+                  ["Declarações", "/api/public/v1/declaracoes", "DEC-101"],
+                ].map(([label, path, token]) => (
+                  <tr key={path} className="border-b border-border/60 last:border-0">
+                    <td className="py-2 pr-4 font-medium text-primary">{label}</td>
+                    <td className="py-2 pr-4 font-mono text-xs">GET · POST {path}</td>
+                    <td className="py-2 pr-4 font-mono text-xs">
+                      GET · PATCH · DELETE {path}/{"{token}"}
+                    </td>
+                    <td className="py-2 font-mono text-xs">{token}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <Endpoint
+          method="POST"
+          path="/api/public/v1/atestados"
+          description="Cria um atestado. Aceita dados em formato brasileiro (datas DD/MM/AAAA, CPF com máscara)."
+        >
+          <Code>{`curl -X POST ${baseUrl}/api/public/v1/atestados \\
+  -H "x-api-key: dv_live_sua_chave_aqui" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "paciente": "Maria Aparecida da Silva",
+    "cpf": "123.456.789-09",
+    "data_nascimento": "12/04/1985",
+    "estabelecimento": "Clínica Vida Plena",
+    "endereco": "Av. Paulista, 1000 • São Paulo - SP",
+    "medico": "Dra. Ana Souza",
+    "crm": "123456/SP",
+    "especialidade": "Clínica Médica",
+    "cid": "J11",
+    "data_inicio": "10/03/2026",
+    "data_fim": "12/03/2026",
+    "data_emissao": "10/03/2026 09:30",
+    "texto": "Atesto para os devidos fins que a paciente necessita de afastamento por 3 (três) dias."
+  }'`}</Code>
+        </Endpoint>
+
+        <Endpoint
+          method="POST"
+          path="/api/public/v1/receitas"
+          description="Cria uma receita médica. Os dias de afastamento não se aplicam."
+        >
+          <Code>{`curl -X POST ${baseUrl}/api/public/v1/receitas \\
+  -H "x-api-key: dv_live_sua_chave_aqui" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "paciente": "João Carlos Pereira",
+    "cpf": "987.654.321-00",
+    "data_nascimento": "03/09/1962",
+    "medico": "Dr. Rafael Lima",
+    "crm": "98765/SP",
+    "especialidade": "Cardiologia",
+    "texto": "1) Losartana 50mg — 1 comprimido pela manhã, uso contínuo."
+  }'`}</Code>
+        </Endpoint>
+
+        <Endpoint
+          method="POST"
+          path="/api/public/v1/laudos"
+          description="Cria um laudo médico com o texto completo do exame/parecer."
+        />
+
+        <Endpoint
+          method="GET"
+          path="/api/public/v1/atestados?limit=20&offset=0&cpf=12345678909&status=valido"
+          description="Lista documentos do tipo com paginação e filtros por CPF e status. O mesmo padrão vale para receitas, laudos, exames e declaracoes."
+        />
+
         <Endpoint
           method="GET"
           path="/api/public/v1/documents?limit=20&offset=0&type=atestado&cpf=12345678909"
-          description="Lista documentos com paginação e filtros opcionais por tipo e CPF."
+          description="Lista todos os tipos em um único endpoint, com filtro opcional por tipo."
         />
+
 
         <Endpoint
           method="GET"
@@ -286,11 +383,11 @@ function ApiPage() {
                 {[
                   ["token", "gerado", "Token do documento (ATE-161, REC-22144, LAU-16105) — somente leitura"],
                   ["code", "gerado", "Código de acesso de 12 caracteres — somente leitura"],
-                  ["type", "enum", "atestado, receita, laudo, exame ou declaracao (obrigatório)"],
+                  ["type", "enum", "atestado, receita, laudo, exame ou declaracao (opcional nos endpoints por tipo)"],
                   ["status", "enum", "valido (padrão), revogado ou expirado"],
                   ["patient_name", "string", "Nome do paciente (obrigatório)"],
-                  ["patient_cpf", "string", "CPF do paciente"],
-                  ["patient_birth_date", "AAAA-MM-DD", "Data de nascimento"],
+                  ["patient_cpf", "string", "CPF do paciente (aceita 123.456.789-09)"],
+                  ["patient_birth_date", "DD/MM/AAAA ou AAAA-MM-DD", "Data de nascimento"],
                   ["establishment_id", "uuid", "Estabelecimento cadastrado (preenche nome e endereço)"],
                   ["establishment_name", "string", "Nome do estabelecimento"],
                   ["establishment_address", "string", "Endereço completo"],
@@ -300,12 +397,13 @@ function ApiPage() {
                   ["professional_specialty", "string", "Especialidade"],
                   ["body_text", "string", "Texto exibido na página do documento"],
                   ["cid", "string", "CID relacionado (atestados)"],
-                  ["leave_start_date", "AAAA-MM-DD", "Início do afastamento"],
-                  ["leave_end_date", "AAAA-MM-DD", "Término do afastamento"],
-                  ["leave_days", "número", "Quantidade de dias de afastamento"],
-                  ["issued_at", "ISO 8601", "Data e horário de emissão (padrão: agora)"],
+                  ["leave_start_date", "DD/MM/AAAA ou AAAA-MM-DD", "Início do afastamento"],
+                  ["leave_end_date", "DD/MM/AAAA ou AAAA-MM-DD", "Término do afastamento"],
+                  ["leave_days", "número", "Dias de afastamento (calculado automaticamente pelas datas)"],
+                  ["issued_at", "DD/MM/AAAA HH:mm ou ISO 8601", "Data e horário de emissão (padrão: agora)"],
                   ["metadata", "objeto", "Dados livres do seu sistema"],
-                  ["Apelidos aceitos", "string", "texto/text/content → body_text; crm → professional_council_number; paciente → patient_name; especialidade → professional_specialty"],
+                  ["Apelidos aceitos", "string", "texto/text/content → body_text; crm → professional_council_number; paciente/nome_paciente → patient_name; especialidade → professional_specialty; data_nascimento, data_inicio, data_fim, data_emissao, dias, estabelecimento, endereco"],
+
                 ].map(([field, type, desc]) => (
                   <tr key={field} className="border-b border-border last:border-0">
                     <td className="py-2 pr-4 font-mono text-xs text-primary">{field}</td>
