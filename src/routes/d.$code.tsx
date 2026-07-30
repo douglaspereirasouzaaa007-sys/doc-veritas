@@ -168,7 +168,38 @@ function DocumentPage() {
                 {doc.body_text || "Sem conteúdo textual informado."}
               </p>
             </section>
+
+            {valid ? (
+              <section className="rounded-xl border border-primary/20 bg-primary-soft/60 p-6">
+                <h2 className="flex items-center gap-2 font-display text-lg font-semibold text-primary">
+                  <ShieldCheck className="h-5 w-5 text-brand-orange" />
+                  Validade legal
+                </h2>
+                <ul className="mt-3 space-y-2 text-sm leading-relaxed text-foreground">
+                  <li>
+                    Documento assinado eletronicamente com certificado digital padrão ICP-Brasil,
+                    com a mesma validade jurídica de um documento em papel assinado de próprio
+                    punho, nos termos da MP nº 2.200-2/2001 e da Lei nº 14.063/2020.
+                  </li>
+                  <li>
+                    Válido em <strong>todo o território nacional</strong>, podendo ser apresentado a
+                    empregadores, farmácias, operadoras de saúde, instituições de ensino e órgãos
+                    públicos.
+                  </li>
+                  <li>
+                    A autenticidade e a integridade deste{" "}
+                    {(DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type).toLowerCase()} podem ser conferidas
+                    a qualquer momento pelo código de verificação ou pelo QR Code ao lado.
+                  </li>
+                  <li>
+                    A responsabilidade técnica pelo conteúdo é do profissional emissor, identificado
+                    por seu registro no conselho de classe.
+                  </li>
+                </ul>
+              </section>
+            ) : null}
           </div>
+
 
           <aside className="h-fit rounded-xl border border-border bg-card p-6 text-center">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
