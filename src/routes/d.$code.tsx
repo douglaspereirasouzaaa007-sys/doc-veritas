@@ -192,9 +192,10 @@ function DocumentPage() {
                     públicos.
                   </li>
                   <li>
-                    A autenticidade e a integridade deste{" "}
-                    {(DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type).toLowerCase()} podem ser conferidas
-                    a qualquer momento pelo código de verificação ou pelo QR Code ao lado.
+                    A autenticidade e a integridade {feminine ? "desta" : "deste"}{" "}
+                    {typeLabel.toLowerCase()} podem ser conferidas a qualquer momento pelo código de
+                    verificação ou pelo QR Code ao lado.
+
                   </li>
                   <li>
                     A responsabilidade técnica pelo conteúdo é do profissional emissor, identificado
