@@ -107,11 +107,10 @@ function DocumentPage() {
             <div>
               <p className="font-display text-2xl font-semibold">
                 {valid
-                  ? `${DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type} ${
-                      doc.type === "receita" || doc.type === "declaracao" ? "válida" : "válido"
-                    }`
-                  : `${DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type} ${DOCUMENT_STATUS_LABEL[doc.status]}`}
+                  ? `${typeLabel} ${feminine ? "válida" : "válido"}`
+                  : `${typeLabel} ${DOCUMENT_STATUS_LABEL[doc.status]}`}
               </p>
+
 
               <p className="mt-1 text-sm opacity-90">
                 {valid
