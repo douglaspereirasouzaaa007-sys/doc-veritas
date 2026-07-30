@@ -17,7 +17,7 @@ const isoDate = z
   .optional()
   .nullable();
 
-export const documentInputSchema = z.object({
+const baseDocumentSchema = z.object({
   type: z.enum(DOCUMENT_TYPES),
   status: z.enum(DOCUMENT_STATUSES).optional(),
   establishment_id: z.string().uuid().optional().nullable(),
@@ -39,7 +39,57 @@ export const documentInputSchema = z.object({
   metadata: z.record(z.any()).optional(),
 });
 
-export type DocumentInput = z.infer<typeof documentInputSchema>;
+/** Aceita apelidos comuns usados por outros sistemas (texto do documento, CRM, etc.). */
+function pick(source: Record<string, unknown>, keys: string[]): unknown {
+  for (const key of keys) {
+    const value = source[key];
+    if (value !== undefined && value !== null && value !== "") return value;
+  }
+  return undefined;
+}
+
+export function normalizeDocumentPayload(input: unknown): unknown {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) return input;
+  const src = { ...(input as Record<string, unknown>) };
+
+  const body = pick(src, ["body_text", "text", "texto", "content", "conteudo", "descricao"]);
+  if (body !== undefined) src.body_text = body;
+
+  const crm = pick(src, [
+    "professional_council_number",
+    "crm",
+    "professional_crm",
+    "medico_crm",
+    "council_number",
+  ]);
+  if (crm !== undefined) {
+    src.professional_council_number = String(crm);
+    src.professional_council = src.professional_council ?? "CRM";
+  }
+
+  const name = pick(src, ["professional_name", "medico", "doctor_name", "professional"]);
+  if (name !== undefined) src.professional_name = String(name);
+
+  const specialty = pick(src, ["professional_specialty", "especialidade", "specialty"]);
+  if (specialty !== undefined) src.professional_specialty = String(specialty);
+
+  const patient = pick(src, ["patient_name", "paciente", "patient"]);
+  if (patient !== undefined) src.patient_name = String(patient);
+
+  const cpf = pick(src, ["patient_cpf", "cpf"]);
+  if (cpf !== undefined) src.patient_cpf = String(cpf);
+
+  if (typeof src.leave_days === "string" && src.leave_days.trim() !== "") {
+    const parsed = Number(src.leave_days);
+    if (Number.isFinite(parsed)) src.leave_days = parsed;
+  }
+
+  return src;
+}
+
+export const documentInputSchema = z.preprocess(normalizeDocumentPayload, baseDocumentSchema);
+
+export type DocumentInput = z.infer<typeof baseDocumentSchema>;
 
 const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
