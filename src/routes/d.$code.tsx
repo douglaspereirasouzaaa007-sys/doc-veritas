@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, CheckCircle2, Printer, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Printer, ShieldCheck, XCircle } from "lucide-react";
 import { getPublicDocument } from "@/lib/public-documents.functions";
 import { Logo } from "@/components/site/Logo";
 import { Button } from "@/components/ui/button";
