@@ -383,11 +383,11 @@ function ApiPage() {
                 {[
                   ["token", "gerado", "Token do documento (ATE-161, REC-22144, LAU-16105) — somente leitura"],
                   ["code", "gerado", "Código de acesso de 12 caracteres — somente leitura"],
-                  ["type", "enum", "atestado, receita, laudo, exame ou declaracao (obrigatório)"],
+                  ["type", "enum", "atestado, receita, laudo, exame ou declaracao (opcional nos endpoints por tipo)"],
                   ["status", "enum", "valido (padrão), revogado ou expirado"],
                   ["patient_name", "string", "Nome do paciente (obrigatório)"],
-                  ["patient_cpf", "string", "CPF do paciente"],
-                  ["patient_birth_date", "AAAA-MM-DD", "Data de nascimento"],
+                  ["patient_cpf", "string", "CPF do paciente (aceita 123.456.789-09)"],
+                  ["patient_birth_date", "DD/MM/AAAA ou AAAA-MM-DD", "Data de nascimento"],
                   ["establishment_id", "uuid", "Estabelecimento cadastrado (preenche nome e endereço)"],
                   ["establishment_name", "string", "Nome do estabelecimento"],
                   ["establishment_address", "string", "Endereço completo"],
@@ -397,12 +397,13 @@ function ApiPage() {
                   ["professional_specialty", "string", "Especialidade"],
                   ["body_text", "string", "Texto exibido na página do documento"],
                   ["cid", "string", "CID relacionado (atestados)"],
-                  ["leave_start_date", "AAAA-MM-DD", "Início do afastamento"],
-                  ["leave_end_date", "AAAA-MM-DD", "Término do afastamento"],
-                  ["leave_days", "número", "Quantidade de dias de afastamento"],
-                  ["issued_at", "ISO 8601", "Data e horário de emissão (padrão: agora)"],
+                  ["leave_start_date", "DD/MM/AAAA ou AAAA-MM-DD", "Início do afastamento"],
+                  ["leave_end_date", "DD/MM/AAAA ou AAAA-MM-DD", "Término do afastamento"],
+                  ["leave_days", "número", "Dias de afastamento (calculado automaticamente pelas datas)"],
+                  ["issued_at", "DD/MM/AAAA HH:mm ou ISO 8601", "Data e horário de emissão (padrão: agora)"],
                   ["metadata", "objeto", "Dados livres do seu sistema"],
-                  ["Apelidos aceitos", "string", "texto/text/content → body_text; crm → professional_council_number; paciente → patient_name; especialidade → professional_specialty"],
+                  ["Apelidos aceitos", "string", "texto/text/content → body_text; crm → professional_council_number; paciente/nome_paciente → patient_name; especialidade → professional_specialty; data_nascimento, data_inicio, data_fim, data_emissao, dias, estabelecimento, endereco"],
+
                 ].map(([field, type, desc]) => (
                   <tr key={field} className="border-b border-border last:border-0">
                     <td className="py-2 pr-4 font-mono text-xs text-primary">{field}</td>
