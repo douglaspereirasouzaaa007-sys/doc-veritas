@@ -26,9 +26,12 @@ export const Route = createFileRoute("/d/$code")({
         content: "Documento digital verificado com dados do paciente, estabelecimento e emissão.",
       },
       { property: "og:type", content: "article" },
+      { property: "og:url", content: `${PUBLIC_SITE_URL}/d/${params.code}` },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: `${PUBLIC_SITE_URL}/d/${params.code}` }],
   }),
+
   component: DocumentPage,
 });
 
