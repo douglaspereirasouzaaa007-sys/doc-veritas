@@ -47,14 +47,14 @@ function Verificar() {
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
-      <main className="flex-1 bg-primary-soft/50 py-16">
+      <main className="flex-1 bg-doc-bg py-16">
         <div className="mx-auto max-w-xl px-4">
-          <div className="rounded-2xl bg-card p-8 shadow-[var(--shadow-soft)]">
-            <ShieldCheck className="h-10 w-10 text-brand-orange" />
-            <h1 className="mt-4 font-display text-3xl font-medium text-primary">
+          <div className="rounded-lg border border-doc-line bg-doc-surface p-8 shadow-[var(--shadow-doc)]">
+            <ShieldCheck className="h-10 w-10 text-doc-accent" />
+            <h1 className="mt-4 font-display text-3xl font-semibold text-doc-ink">
               Verificar documento
             </h1>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-doc-muted">
               Informe o token do documento (ex.: ATE-161, REC-22144, LAU-16105) ou o código de acesso impresso no rodapé do atestado, receita ou laudo.
             </p>
 

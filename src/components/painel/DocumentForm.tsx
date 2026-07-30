@@ -224,14 +224,14 @@ export function DocumentForm({
               onChange={(e) => set("professional_name", e.target.value)}
             />
           </Field>
-          <Field label="Conselho">
+          <Field label="Conselho (CRM)">
             <Input
               value={value.professional_council ?? ""}
               placeholder="CRM"
               onChange={(e) => set("professional_council", e.target.value)}
             />
           </Field>
-          <Field label="Número / UF">
+          <Field label="CRM — número / UF">
             <Input
               value={value.professional_council_number ?? ""}
               placeholder="123456/SP"
