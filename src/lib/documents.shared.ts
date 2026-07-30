@@ -84,6 +84,20 @@ export function normalizeDocumentPayload(input: unknown): unknown {
     if (Number.isFinite(parsed)) src.leave_days = parsed;
   }
 
+  // Calcula automaticamente os dias de afastamento quando não informados
+  if (
+    (src.leave_days === undefined || src.leave_days === null || src.leave_days === "") &&
+    typeof src.leave_start_date === "string" &&
+    typeof src.leave_end_date === "string"
+  ) {
+    const start = new Date(`${src.leave_start_date}T00:00:00`);
+    const end = new Date(`${src.leave_end_date}T00:00:00`);
+    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && end >= start) {
+      src.leave_days = Math.round((end.getTime() - start.getTime()) / 86400000) + 1;
+    }
+  }
+
+
   return src;
 }
 
