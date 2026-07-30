@@ -117,9 +117,14 @@ function DocumentPage() {
                   ? "Documento autêntico, emitido eletronicamente e verificado nesta data."
                   : "Este documento não pode mais ser considerado válido."}
               </p>
-              <p className="mt-3 inline-flex rounded-full bg-primary-foreground/15 px-3 py-1 font-mono text-xs tracking-widest">
-                {doc.code}
-              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <span className="inline-flex rounded-full bg-primary-foreground/15 px-3 py-1 font-mono text-xs tracking-widest">
+                  Token {doc.token}
+                </span>
+                <span className="inline-flex rounded-full bg-primary-foreground/15 px-3 py-1 font-mono text-xs tracking-widest">
+                  Código {doc.code}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -209,9 +214,15 @@ function DocumentPage() {
 
           <aside className="h-fit rounded-xl border border-border bg-card p-6 text-center">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Código de verificação
+              Token do documento
             </p>
             <p className="mt-1 font-mono text-lg font-semibold tracking-widest text-primary">
+              {doc.token}
+            </p>
+            <p className="mt-3 text-xs uppercase tracking-wide text-muted-foreground">
+              Código de acesso
+            </p>
+            <p className="mt-1 font-mono text-sm font-semibold tracking-widest text-primary">
               {doc.code}
             </p>
             <img
@@ -222,8 +233,8 @@ function DocumentPage() {
               height={160}
             />
             <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-              Aponte a câmera para o QR Code ou acesse a página de verificação e informe o código
-              acima.
+              Aponte a câmera para o QR Code ou acesse a página de verificação e informe o token ou
+              o código de acesso acima.
             </p>
           </aside>
         </div>
