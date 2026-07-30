@@ -44,7 +44,7 @@ function PainelLayout() {
   return (
     <div className="flex min-h-screen bg-muted">
       <aside className="hidden w-64 shrink-0 flex-col border-r border-border bg-card p-5 lg:flex">
-        <Logo />
+        <Logo variant="primary" />
         <nav className="mt-8 flex flex-1 flex-col gap-1">
           {nav.map((item) => {
             const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);

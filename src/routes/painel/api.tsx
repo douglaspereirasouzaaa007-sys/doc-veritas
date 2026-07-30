@@ -231,16 +231,16 @@ function ApiPage() {
           <Code>{`{
   "data": {
     "token": "ATE-161",
-    "code": "ABCD-2345-EFGH",
+    "code": "847291",
     "type": "atestado",
     "status": "valido",
     "...": "..."
   },
   "token": "ATE-161",
-  "access_code": "ABCD-2345-EFGH",
-  "verification_url": "${baseUrl}/d/ABCD-2345-EFGH",
-  "token_url": "${baseUrl}/d/ATE-161",
-  "qrcode_url": "${baseUrl}/api/public/v1/qrcode/ABCD-2345-EFGH"
+  "access_code": "847291",
+  "verification_url": "${baseUrl}/d/847291",
+  "token_url": "${baseUrl}/d/ATE-10001",
+  "qrcode_url": "${baseUrl}/api/public/v1/qrcode/847291"
 }`}</Code>
         </Endpoint>
 
@@ -358,7 +358,7 @@ function ApiPage() {
           path="/api/public/v1/documents/{token-ou-codigo}"
           description="Atualiza campos do documento (inclusive status: valido, revogado ou expirado)."
         >
-          <Code>{`curl -X PATCH ${baseUrl}/api/public/v1/documents/ABCD-2345-EFGH \\
+          <Code>{`curl -X PATCH ${baseUrl}/api/public/v1/documents/847291 \\
   -H "x-api-key: dv_live_sua_chave_aqui" \\
   -H "Content-Type: application/json" \\
   -d '{"status": "revogado"}'`}</Code>

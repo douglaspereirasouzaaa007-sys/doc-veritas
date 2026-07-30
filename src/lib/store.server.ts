@@ -75,12 +75,19 @@ export type VerificationRow = {
   created_at: string;
 };
 
+export type OwnerRow = {
+  email: string;
+  passwordHash: string;
+  registeredAt: string;
+};
+
 type Store = {
   documents: DocumentRow[];
   establishments: EstablishmentRow[];
   api_keys: ApiKeyRow[];
   verifications: VerificationRow[];
   counters: Record<string, number>;
+  owner: OwnerRow | null;
 };
 
 const DEFAULT_STORE: Store = {
@@ -89,7 +96,20 @@ const DEFAULT_STORE: Store = {
   api_keys: [],
   verifications: [],
   counters: {},
+  owner: null,
 };
+
+/** Retorna as credenciais do proprietário cadastrado, ou null se ainda não há cadastro. */
+export function getOwner(): OwnerRow | null {
+  return readStore().owner ?? null;
+}
+
+/** Salva o proprietário no store. */
+export function saveOwner(owner: OwnerRow): void {
+  const store = readStore();
+  store.owner = owner;
+  writeStore(store);
+}
 
 const TOKEN_PREFIXES: Record<string, string> = {
   atestado: "ATE",
