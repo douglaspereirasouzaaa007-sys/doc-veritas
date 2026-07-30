@@ -268,7 +268,7 @@ function ApiPage() {
         <Endpoint
           method="GET"
           path="/api/public/v1/qrcode/{token-ou-codigo}"
-          description="Retorna o QR Code do documento em SVG preto e branco, pronto para impressão ou uso no seu sistema."
+          description="Retorna o QR Code do documento em preto e branco. Use ?format=png para PNG e ?size=512 para definir o tamanho."
         />
 
         <div className="rounded-xl border border-border bg-card p-6">
@@ -305,6 +305,7 @@ function ApiPage() {
                   ["leave_days", "número", "Quantidade de dias de afastamento"],
                   ["issued_at", "ISO 8601", "Data e horário de emissão (padrão: agora)"],
                   ["metadata", "objeto", "Dados livres do seu sistema"],
+                  ["Apelidos aceitos", "string", "texto/text/content → body_text; crm → professional_council_number; paciente → patient_name; especialidade → professional_specialty"],
                 ].map(([field, type, desc]) => (
                   <tr key={field} className="border-b border-border last:border-0">
                     <td className="py-2 pr-4 font-mono text-xs text-primary">{field}</td>
