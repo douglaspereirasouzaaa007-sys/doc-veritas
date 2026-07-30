@@ -82,10 +82,11 @@ function DocumentPage() {
   const isAtestado = doc.type === "atestado";
   const feminine = doc.type === "receita" || doc.type === "declaracao";
   const typeLabel = DOCUMENT_TYPE_LABEL[doc.type] ?? doc.type;
-  const crm = [doc.professional_council || "CRM", doc.professional_council_number]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
+  const council = (doc.professional_council || "CRM").trim();
+  const crm =
+    council.toUpperCase() === "CRM"
+      ? (doc.professional_council_number ?? "")
+      : `${council} ${doc.professional_council_number ?? ""}`.trim();
 
   return (
     <div className="min-h-screen bg-doc-bg pb-16 text-doc-ink">
