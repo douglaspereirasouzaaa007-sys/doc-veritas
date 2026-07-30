@@ -1,0 +1,1 @@
+delete from public.documents where patient_name = 'Teste Dominio'; delete from public.api_keys where name = 'temp-verify';
