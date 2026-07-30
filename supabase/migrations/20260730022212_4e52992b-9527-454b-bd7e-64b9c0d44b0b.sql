@@ -1,0 +1,1 @@
+delete from public.documents where token in ('ATE-101','ATE-102','REC-20002'); delete from public.api_keys where name='__selftest__';

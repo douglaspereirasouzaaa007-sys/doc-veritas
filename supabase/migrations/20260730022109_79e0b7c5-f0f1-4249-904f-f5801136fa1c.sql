@@ -1,0 +1,1 @@
+insert into public.api_keys (name, key_prefix, key_hash, active) values ('__selftest__','dv_live_428ef856','0061e372c76432f97ee2543c40408049229162726fc5720233d3964c22ad2be7', true);
