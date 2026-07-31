@@ -14,7 +14,7 @@ export default defineConfig({
   },
   // Use node-server preset on Replit so the build produces a runnable Node.js HTTP server
   // instead of the Cloudflare Workers module format (which is the Lovable sandbox default).
-  nitro: { preset: "node-server" },
+  nitro: { preset: "node-server", runtimeConfig: { nitro: { port: 5000 } } },
   vite: {
     server: {
       port: 5000,
