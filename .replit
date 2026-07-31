@@ -35,7 +35,7 @@ localPort = 5000
 externalPort = 80
 
 [deployment]
-deploymentTarget = "cloudrun"
+deploymentTarget = "vm"
 run = ["node", ".output/server/index.mjs"]
 build = ["bun", "run", "build"]
 
@@ -44,3 +44,4 @@ build = ["bun", "run", "build"]
 [userenv.shared]
 PUBLIC_SITE_URL = "https://memedsolutions.com"
 VITE_PUBLIC_SITE_URL = "https://memedsolutions.com"
+STORE_DATA_PATH = "/home/runner/workspace/data/store.json"

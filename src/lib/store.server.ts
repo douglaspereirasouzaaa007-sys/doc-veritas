@@ -1,11 +1,20 @@
 /**
  * Armazenamento local em JSON — substitui o Supabase.
- * Lê e escreve em data/store.json na raiz do projeto.
+ *
+ * Caminho do arquivo (em ordem de prioridade):
+ *   1. Variável de ambiente STORE_DATA_PATH (absoluto, ideal para produção)
+ *   2. /home/runner/workspace/data/store.json (absoluto, funciona em dev e VM Replit)
+ *
+ * Usar caminhos ABSOLUTOS evita perda de dados quando process.cwd() muda
+ * entre o dev server e o servidor de produção buildado.
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 
-const DATA_PATH = resolve(process.cwd(), "data", "store.json");
+// Caminho absoluto para garantir persistência — nunca usa process.cwd()
+const DATA_PATH =
+  process.env.STORE_DATA_PATH ??
+  resolve("/home/runner/workspace", "data", "store.json");
 
 export type DocumentStatus = "valido" | "revogado" | "expirado";
 export type DocumentType = "atestado" | "receita" | "laudo" | "exame" | "declaracao";
@@ -154,3 +163,6 @@ export function nextToken(type: string): string {
 export function uuid(): string {
   return crypto.randomUUID();
 }
+
+// Loga o caminho ativo na inicialização para facilitar debug
+console.log(`[store] DATA_PATH: ${DATA_PATH}`);
