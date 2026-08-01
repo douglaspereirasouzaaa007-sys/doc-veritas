@@ -19,7 +19,7 @@ export const getMe = createServerFn({ method: "GET" })
 export const getStats = createServerFn({ method: "GET" })
   .middleware([requireLocalAuth])
   .handler(async () => {
-    const store = readStore();
+    const store = await readStore();
     const counts: Record<string, number> = {};
     const byDay: Record<string, number> = {};
     for (const doc of store.documents) {
@@ -53,7 +53,7 @@ export const listDocuments = createServerFn({ method: "GET" })
       .parse(data ?? {}),
   )
   .handler(async ({ data }) => {
-    const store = readStore();
+    const store = await readStore();
     let docs = [...store.documents].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
@@ -131,7 +131,7 @@ export const getDocument = createServerFn({ method: "GET" })
   .middleware([requireLocalAuth])
   .validator((data: unknown) => z.object({ id: z.string() }).parse(data))
   .handler(async ({ data }) => {
-    const store = readStore();
+    const store = await readStore();
     const doc = store.documents.find((d) => d.id === data.id);
     return { document: doc ? serializeDocument(doc) : null };
   });
@@ -142,7 +142,7 @@ export const saveDocument = createServerFn({ method: "POST" })
     z.object({ id: z.string().optional(), values: documentInputSchema }).parse(data),
   )
   .handler(async ({ data }) => {
-    const store = readStore();
+    const store = await readStore();
     const payload = {
       ...data.values,
       metadata: (data.values.metadata ?? {}) as Record<string, unknown>,
@@ -153,13 +153,13 @@ export const saveDocument = createServerFn({ method: "POST" })
       const idx = store.documents.findIndex((d) => d.id === data.id);
       if (idx === -1) throw new Error("Documento não encontrado.");
       Object.assign(store.documents[idx], payload);
-      writeStore(store);
+      await writeStore(store);
       const row = store.documents[idx];
       return { id: row.id, code: row.code, token: row.token };
     }
 
     const code = generateDocumentCode();
-    const token = nextToken(payload.type);
+    const token = await nextToken(payload.type);
     const row: DocumentRow = {
       id: uuid(),
       token,
@@ -188,7 +188,7 @@ export const saveDocument = createServerFn({ method: "POST" })
       created_by: "owner",
     };
     store.documents.push(row);
-    writeStore(store);
+    await writeStore(store);
     return { id: row.id, code: row.code, token: row.token };
   });
 
@@ -198,11 +198,11 @@ export const setDocumentStatus = createServerFn({ method: "POST" })
     z.object({ id: z.string(), status: z.enum(DOCUMENT_STATUSES) }).parse(data),
   )
   .handler(async ({ data }) => {
-    const store = readStore();
+    const store = await readStore();
     const doc = store.documents.find((d) => d.id === data.id);
     if (!doc) throw new Error("Documento não encontrado.");
     doc.status = data.status;
-    writeStore(store);
+    await writeStore(store);
     return { ok: true };
   });
 
@@ -210,18 +210,18 @@ export const deleteDocument = createServerFn({ method: "POST" })
   .middleware([requireLocalAuth])
   .validator((data: unknown) => z.object({ id: z.string() }).parse(data))
   .handler(async ({ data }) => {
-    const store = readStore();
+    const store = await readStore();
     const idx = store.documents.findIndex((d) => d.id === data.id);
     if (idx === -1) throw new Error("Documento não encontrado.");
     store.documents.splice(idx, 1);
-    writeStore(store);
+    await writeStore(store);
     return { ok: true };
   });
 
 export const listEstablishments = createServerFn({ method: "GET" })
   .middleware([requireLocalAuth])
   .handler(async () => {
-    const store = readStore();
+    const store = await readStore();
     const rows = [...store.establishments].sort(
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     );
@@ -251,12 +251,12 @@ export const saveEstablishment = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    const store = readStore();
+    const store = await readStore();
     if (data.id) {
       const est = store.establishments.find((e) => e.id === data.id);
       if (!est) throw new Error("Estabelecimento não encontrado.");
       Object.assign(est, data.values);
-      writeStore(store);
+      await writeStore(store);
       return { id: data.id };
     }
     const newEst = {
@@ -266,7 +266,7 @@ export const saveEstablishment = createServerFn({ method: "POST" })
       ...data.values,
     };
     store.establishments.push(newEst);
-    writeStore(store);
+    await writeStore(store);
     return { id: newEst.id };
   });
 
@@ -274,18 +274,18 @@ export const deleteEstablishment = createServerFn({ method: "POST" })
   .middleware([requireLocalAuth])
   .validator((data: unknown) => z.object({ id: z.string() }).parse(data))
   .handler(async ({ data }) => {
-    const store = readStore();
+    const store = await readStore();
     const idx = store.establishments.findIndex((e) => e.id === data.id);
     if (idx === -1) throw new Error("Estabelecimento não encontrado.");
     store.establishments.splice(idx, 1);
-    writeStore(store);
+    await writeStore(store);
     return { ok: true };
   });
 
 export const listApiKeys = createServerFn({ method: "GET" })
   .middleware([requireLocalAuth])
   .handler(async () => {
-    const store = readStore();
+    const store = await readStore();
     const rows = store.api_keys
       .map(({ key_hash: _h, ...rest }) => rest)
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -300,7 +300,7 @@ export const createApiKey = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { key, prefix } = randomApiKey();
     const key_hash = await hashApiKey(key);
-    const store = readStore();
+    const store = await readStore();
     store.api_keys.push({
       id: uuid(),
       name: data.name,
@@ -312,7 +312,7 @@ export const createApiKey = createServerFn({ method: "POST" })
       created_at: new Date().toISOString(),
       created_by: "owner",
     });
-    writeStore(store);
+    await writeStore(store);
     return { key };
   });
 
@@ -322,11 +322,11 @@ export const updateApiKey = createServerFn({ method: "POST" })
     z.object({ id: z.string(), active: z.boolean() }).parse(data),
   )
   .handler(async ({ data }) => {
-    const store = readStore();
+    const store = await readStore();
     const key = store.api_keys.find((k) => k.id === data.id);
     if (!key) throw new Error("Chave não encontrada.");
     key.active = data.active;
-    writeStore(store);
+    await writeStore(store);
     return { ok: true };
   });
 
@@ -334,18 +334,18 @@ export const deleteApiKey = createServerFn({ method: "POST" })
   .middleware([requireLocalAuth])
   .validator((data: unknown) => z.object({ id: z.string() }).parse(data))
   .handler(async ({ data }) => {
-    const store = readStore();
+    const store = await readStore();
     const idx = store.api_keys.findIndex((k) => k.id === data.id);
     if (idx === -1) throw new Error("Chave não encontrada.");
     store.api_keys.splice(idx, 1);
-    writeStore(store);
+    await writeStore(store);
     return { ok: true };
   });
 
 export const listVerifications = createServerFn({ method: "GET" })
   .middleware([requireLocalAuth])
   .handler(async () => {
-    const store = readStore();
+    const store = await readStore();
     const rows = [...store.verifications]
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
       .slice(0, 100);

@@ -65,7 +65,7 @@ export async function listDocuments(request: Request, type?: DocumentType) {
   const status = url.searchParams.get("status");
   const queryType = type ?? (url.searchParams.get("type") as DocumentType | null);
 
-  const store = readStore();
+  const store = await readStore();
   let docs = [...store.documents].sort(
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   );
@@ -118,7 +118,7 @@ export async function createDocument(request: Request, type?: DocumentType) {
   }
 
   const values = parsed.data;
-  const store = readStore();
+  const store = await readStore();
 
   let establishment_name = values.establishment_name ?? null;
   let establishment_address = values.establishment_address ?? null;
@@ -141,7 +141,7 @@ export async function createDocument(request: Request, type?: DocumentType) {
   }
 
   const code = generateDocumentCode();
-  const token = nextToken(values.type);
+  const token = await nextToken(values.type);
   const row: DocumentRow = {
     id: uuid(),
     token,
@@ -171,7 +171,7 @@ export async function createDocument(request: Request, type?: DocumentType) {
   };
 
   store.documents.push(row);
-  writeStore(store);
+  await writeStore(store);
 
   const qrcode_base64 = await qrcodeDataUrl(code);
   return json({ data: toPublicFields(row), ...links(row), qrcode_base64 }, 201);
@@ -183,7 +183,7 @@ export async function getDocument(request: Request, code: string, type?: Documen
   if (!auth.ok) return json({ error: auth.error }, auth.status);
 
   const lookup = normalizeLookup(code);
-  const store = readStore();
+  const store = await readStore();
   let row = store.documents.find((d) => d[lookup.kind] === lookup.value) ?? null;
   if (type && row && row.type !== type) row = null;
 
@@ -215,13 +215,13 @@ export async function patchDocument(request: Request, code: string, type?: Docum
   if (!parsed.success) return json({ error: "Dados inválidos." }, 422);
 
   const lookup = normalizeLookup(code);
-  const store = readStore();
+  const store = await readStore();
   const idx = store.documents.findIndex((d) => d[lookup.kind] === lookup.value);
   if (idx === -1 || (type && store.documents[idx].type !== type))
     return json({ error: "Documento não encontrado." }, 404);
 
   Object.assign(store.documents[idx], parsed.data);
-  writeStore(store);
+  await writeStore(store);
   return json({ data: toPublicFields(store.documents[idx]) });
 }
 
@@ -231,13 +231,13 @@ export async function revokeDocument(request: Request, code: string, type?: Docu
   if (!auth.ok) return json({ error: auth.error }, auth.status);
 
   const lookup = normalizeLookup(code);
-  const store = readStore();
+  const store = await readStore();
   const idx = store.documents.findIndex((d) => d[lookup.kind] === lookup.value);
   if (idx === -1 || (type && store.documents[idx].type !== type))
     return json({ error: "Documento não encontrado." }, 404);
 
   store.documents[idx].status = "revogado";
-  writeStore(store);
+  await writeStore(store);
   const row = store.documents[idx];
   return json({ ok: true, status: "revogado", token: row.token, access_code: row.code });
 }

@@ -1,20 +1,27 @@
 /**
- * Armazenamento local em JSON — substitui o Supabase.
+ * Armazenamento persistente via PostgreSQL (Replit built-in).
  *
- * Caminho do arquivo (em ordem de prioridade):
- *   1. Variável de ambiente STORE_DATA_PATH (absoluto, ideal para produção)
- *   2. /home/runner/workspace/data/store.json (absoluto, funciona em dev e VM Replit)
+ * Usa uma única tabela `store_state` com uma linha JSONB para manter
+ * compatibilidade com a interface anterior (readStore/writeStore),
+ * mas com persistência real independente de deployment target.
  *
- * Usar caminhos ABSOLUTOS evita perda de dados quando process.cwd() muda
- * entre o dev server e o servidor de produção buildado.
+ * Todas as funções são async — use `await` nos callers.
  */
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
-import { resolve, dirname } from "path";
+import pg from "pg";
 
-// Caminho absoluto para garantir persistência — nunca usa process.cwd()
-const DATA_PATH =
-  process.env.STORE_DATA_PATH ??
-  resolve("/home/runner/workspace", "data", "store.json");
+const { Pool } = pg;
+
+// Pool de conexões — reutilizado entre requests no mesmo processo
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes("sslmode=require")
+    ? { rejectUnauthorized: false }
+    : undefined,
+});
+
+// Loga conexão na inicialização
+pool.on("connect", () => console.log("[store] PostgreSQL conectado"));
+pool.on("error", (err) => console.error("[store] Erro no pool PostgreSQL:", err.message));
 
 export type DocumentStatus = "valido" | "revogado" | "expirado";
 export type DocumentType = "atestado" | "receita" | "laudo" | "exame" | "declaracao";
@@ -90,7 +97,7 @@ export type OwnerRow = {
   registeredAt: string;
 };
 
-type Store = {
+export type Store = {
   documents: DocumentRow[];
   establishments: EstablishmentRow[];
   api_keys: ApiKeyRow[];
@@ -108,17 +115,72 @@ const DEFAULT_STORE: Store = {
   owner: null,
 };
 
-/** Retorna as credenciais do proprietário cadastrado, ou null se ainda não há cadastro. */
-export function getOwner(): OwnerRow | null {
-  return readStore().owner ?? null;
+// ── Garante que a tabela existe (idempotente) ─────────────────────────────────
+
+async function ensureTable(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS store_state (
+      id         INTEGER     PRIMARY KEY DEFAULT 1,
+      data       JSONB       NOT NULL    DEFAULT '{}'::jsonb,
+      updated_at TIMESTAMPTZ             DEFAULT NOW()
+    );
+    INSERT INTO store_state (id, data)
+    VALUES (1, $1::jsonb)
+    ON CONFLICT (id) DO NOTHING;
+  `, [JSON.stringify(DEFAULT_STORE)]);
 }
 
-/** Salva o proprietário no store. */
-export function saveOwner(owner: OwnerRow): void {
-  const store = readStore();
-  store.owner = owner;
-  writeStore(store);
+let _tableReady = false;
+async function getPool(): Promise<pg.Pool> {
+  if (!_tableReady) {
+    await ensureTable();
+    _tableReady = true;
+  }
+  return pool;
 }
+
+// ── readStore / writeStore ────────────────────────────────────────────────────
+
+export async function readStore(): Promise<Store> {
+  const db = await getPool();
+  const res = await db.query<{ data: Store }>("SELECT data FROM store_state WHERE id = 1");
+  if (res.rows.length === 0) return structuredClone(DEFAULT_STORE);
+  return { ...DEFAULT_STORE, ...res.rows[0].data };
+}
+
+export async function writeStore(store: Store): Promise<void> {
+  const db = await getPool();
+  await db.query(
+    `INSERT INTO store_state (id, data, updated_at)
+     VALUES (1, $1::jsonb, NOW())
+     ON CONFLICT (id) DO UPDATE SET data = $1::jsonb, updated_at = NOW()`,
+    [JSON.stringify(store)],
+  );
+}
+
+// ── Owner ─────────────────────────────────────────────────────────────────────
+
+export async function getOwner(): Promise<OwnerRow | null> {
+  const db = await getPool();
+  const res = await db.query<{ owner: OwnerRow | null }>(
+    "SELECT data->>'owner' IS NOT NULL AS has_owner, data->'owner' AS owner FROM store_state WHERE id = 1",
+  );
+  if (res.rows.length === 0) return null;
+  return res.rows[0].owner ?? null;
+}
+
+export async function saveOwner(owner: OwnerRow): Promise<void> {
+  const db = await getPool();
+  await db.query(
+    `UPDATE store_state
+     SET data = jsonb_set(data, '{owner}', $1::jsonb),
+         updated_at = NOW()
+     WHERE id = 1`,
+    [JSON.stringify(owner)],
+  );
+}
+
+// ── nextToken — atômico no banco para evitar duplicatas ───────────────────────
 
 const TOKEN_PREFIXES: Record<string, string> = {
   atestado: "ATE",
@@ -128,41 +190,28 @@ const TOKEN_PREFIXES: Record<string, string> = {
   declaracao: "DEC",
 };
 
-function ensureDir(): void {
-  const dir = dirname(DATA_PATH);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-}
-
-export function readStore(): Store {
-  ensureDir();
-  if (!existsSync(DATA_PATH)) return structuredClone(DEFAULT_STORE);
-  try {
-    const raw = readFileSync(DATA_PATH, "utf-8");
-    return { ...DEFAULT_STORE, ...JSON.parse(raw) };
-  } catch {
-    return structuredClone(DEFAULT_STORE);
-  }
-}
-
-export function writeStore(store: Store): void {
-  ensureDir();
-  writeFileSync(DATA_PATH, JSON.stringify(store, null, 2), "utf-8");
-}
-
-/** Gera o próximo token sequencial no formato PREFIXO-NNNNN (mínimo 5 dígitos). */
-export function nextToken(type: string): string {
-  const store = readStore();
+export async function nextToken(type: string): Promise<string> {
+  const db = await getPool();
   const prefix = TOKEN_PREFIXES[type] ?? type.slice(0, 3).toUpperCase();
-  // Inicia em 10000 para que o primeiro token já tenha 5 dígitos (ex.: ATE-10001).
-  const count = (store.counters[prefix] ?? 10000) + 1;
-  store.counters[prefix] = count;
-  writeStore(store);
+  // Atualiza atomicamente o contador no banco e retorna o novo valor
+  const res = await db.query<{ count: string }>(
+    `UPDATE store_state
+     SET data = jsonb_set(
+       data,
+       ARRAY['counters', $1::text],
+       to_jsonb(COALESCE((data->'counters'->$1::text)::text::int, 10000) + 1)
+     ),
+     updated_at = NOW()
+     WHERE id = 1
+     RETURNING (data->'counters'->$1::text)::text::int AS count`,
+    [prefix],
+  );
+  const count = Number(res.rows[0]?.count ?? 10001);
   return `${prefix}-${count}`;
 }
+
+// ── uuid ──────────────────────────────────────────────────────────────────────
 
 export function uuid(): string {
   return crypto.randomUUID();
 }
-
-// Loga o caminho ativo na inicialização para facilitar debug
-console.log(`[store] DATA_PATH: ${DATA_PATH}`);

@@ -71,7 +71,7 @@ async function setSessionCookie(userId: string) {
 /** Retorna se o proprietário já está cadastrado. */
 export const getOwnerStatus = createServerFn({ method: "GET" }).handler(async () => {
   const { getOwner } = await import("./store.server");
-  return { registered: getOwner() !== null };
+  return { registered: (await getOwner()) !== null };
 });
 
 /** Cadastro único do proprietário. Bloqueia automaticamente após o primeiro uso. */
@@ -86,11 +86,11 @@ export const register = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { getOwner, saveOwner } = await import("./store.server");
-    if (getOwner() !== null) {
+    if ((await getOwner()) !== null) {
       throw new Error("Cadastro encerrado. O proprietário já foi registrado.");
     }
     const passwordHash = await hashPassword(data.password);
-    saveOwner({ email: data.email, passwordHash, registeredAt: new Date().toISOString() });
+    await saveOwner({ email: data.email, passwordHash, registeredAt: new Date().toISOString() });
     await setSessionCookie("owner");
     return { ok: true };
   });
@@ -101,7 +101,7 @@ export const signIn = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { getOwner } = await import("./store.server");
-    const owner = getOwner();
+    const owner = await getOwner();
 
     let authenticated = false;
     if (owner !== null) {

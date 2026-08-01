@@ -9,7 +9,7 @@ export const getPublicDocument = createServerFn({ method: "GET" })
   .validator((data: unknown) => z.object({ code: z.string().min(4).max(40) }).parse(data))
   .handler(async ({ data }): Promise<{ document: PublicDocument | null }> => {
     const lookup = normalizeLookup(data.code);
-    const store = readStore();
+    const store = await readStore();
 
     const row = store.documents.find((d) => d[lookup.kind] === lookup.value) ?? null;
 
@@ -26,7 +26,7 @@ export const getPublicDocument = createServerFn({ method: "GET" })
       row.views_count = (row.views_count ?? 0) + 1;
     }
 
-    writeStore(store);
+    await writeStore(store);
 
     if (!row) return { document: null };
 
