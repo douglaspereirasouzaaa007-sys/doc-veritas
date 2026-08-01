@@ -118,16 +118,20 @@ const DEFAULT_STORE: Store = {
 // ── Garante que a tabela existe (idempotente) ─────────────────────────────────
 
 async function ensureTable(): Promise<void> {
+  // Two separate queries — pg rejects multi-statement parameterized queries
   await pool.query(`
     CREATE TABLE IF NOT EXISTS store_state (
       id         INTEGER     PRIMARY KEY DEFAULT 1,
       data       JSONB       NOT NULL    DEFAULT '{}'::jsonb,
       updated_at TIMESTAMPTZ             DEFAULT NOW()
-    );
-    INSERT INTO store_state (id, data)
-    VALUES (1, $1::jsonb)
-    ON CONFLICT (id) DO NOTHING;
-  `, [JSON.stringify(DEFAULT_STORE)]);
+    )
+  `);
+  await pool.query(
+    `INSERT INTO store_state (id, data)
+     VALUES (1, $1::jsonb)
+     ON CONFLICT (id) DO NOTHING`,
+    [JSON.stringify(DEFAULT_STORE)],
+  );
 }
 
 let _tableReady = false;
