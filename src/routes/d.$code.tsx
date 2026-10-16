@@ -188,7 +188,7 @@ function InfoCard({
 // ── Página principal ─────────────────────────────────────────────────────────
 
 function DocumentPage() {
-  const { document: doc } = Route.useLoaderData();
+  const { document: doc, ambiguous } = Route.useLoaderData();
   const { code } = Route.useParams();
 
   const [showSplash, setShowSplash] = useState(false);
@@ -205,21 +205,23 @@ function DocumentPage() {
   if (!doc) {
     return (
       <>
-        {showSplash && !splashDone && <SplashScreen onDone={handleSplashDone} />}
+        {!ambiguous && showSplash && !splashDone && <SplashScreen onDone={handleSplashDone} />}
         <div className="flex min-h-screen flex-col items-center justify-center bg-doc-bg px-4">
           <div className="w-full max-w-md text-center">
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-red-50">
               <XCircle className="h-10 w-10 text-red-500" />
             </div>
             <h1 className="font-display text-2xl font-bold text-doc-ink">
-              Documento não encontrado
+              {ambiguous ? "Código compartilhado por mais de um documento" : "Documento não encontrado"}
             </h1>
             <p className="mt-3 text-[15px] leading-relaxed text-doc-muted">
-              Não localizamos nenhum documento com o identificador{" "}
+              {ambiguous ? "Não é seguro selecionar um documento para o identificador " : "Não localizamos nenhum documento com o identificador "}
               <code className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-sm font-medium text-slate-700">
                 {code}
               </code>
-              . Verifique se o token ou o código de acesso foi digitado corretamente.
+              {ambiguous
+                ? ". Solicite ao emissor o link individual ou um novo QR Code deste documento. Nenhum dado de paciente será exibido por este código ambíguo."
+                : ". Verifique se o token ou o código de acesso foi digitado corretamente."}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
               <Button asChild variant="outline">
@@ -250,7 +252,7 @@ function DocumentPage() {
       : `${council} ${doc.professional_council_number}`.trim()
     : null;
 
-  const qrUrl = `${PUBLIC_SITE_URL}/d/${doc.code}`;
+  const qrUrl = `${PUBLIC_SITE_URL}/d/${doc.id}`;
 
   return (
     <>
@@ -484,7 +486,7 @@ function DocumentPage() {
                   <div className="relative mx-auto mt-5 w-fit">
                     <div className="rounded-2xl border-2 border-doc-line bg-white p-3 shadow-inner">
                       <img
-                        src={`/api/public/v1/qrcode/${doc.code}?size=240`}
+                        src={`/api/public/v1/qrcode/${doc.id}?size=240`}
                         alt={`QR Code do documento ${doc.code}`}
                         className="h-52 w-52"
                         width={208}

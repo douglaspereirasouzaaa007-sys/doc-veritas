@@ -59,7 +59,7 @@ function EditarDocumento() {
           </p>
         </div>
         <Button asChild variant="outline">
-          <a href={`/d/${code}`} target="_blank" rel="noreferrer">
+          <a href={`/d/${id}`} target="_blank" rel="noreferrer">
             Ver página pública
           </a>
         </Button>

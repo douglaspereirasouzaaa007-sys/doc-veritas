@@ -33,3 +33,4 @@ dist-ssr
 
 # Private exports and generated deliverables
 /generated-artifacts/
+/attached_assets/*.zip

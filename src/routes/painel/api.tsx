@@ -230,18 +230,26 @@ function ApiPage() {
           <p className="text-sm text-muted-foreground">Resposta (201):</p>
           <Code>{`{
   "data": {
-    "token": "ATE-161",
+    "id": "11111111-1111-4111-8111-111111111111",
+    "token": "ATE-10001",
     "code": "847291",
     "type": "atestado",
     "status": "valido",
     "...": "..."
   },
-  "token": "ATE-161",
+  "token": "ATE-10001",
   "access_code": "847291",
-  "verification_url": "${baseUrl}/d/847291",
+  "document_id": "11111111-1111-4111-8111-111111111111",
+  "verification_url": "${baseUrl}/d/11111111-1111-4111-8111-111111111111",
   "token_url": "${baseUrl}/d/ATE-10001",
-  "qrcode_url": "${baseUrl}/api/public/v1/qrcode/847291"
+  "qrcode_url": "${baseUrl}/api/public/v1/qrcode/11111111-1111-4111-8111-111111111111"
 }`}</Code>
+          <p className="text-sm text-muted-foreground">
+            Use o ID individual e os links retornados pela API. Consultas por código e token
+            continuam disponíveis quando identificam um único documento. Identificadores
+            históricos repetidos retornam 409, sem selecionar um paciente arbitrariamente.
+            Novas emissões reservam código e token exclusivos na mesma transação.
+          </p>
         </Endpoint>
 
         <div className="rounded-xl border border-border bg-card p-6">
@@ -433,6 +441,9 @@ function ApiPage() {
             </li>
             <li>
               <strong>404</strong> — documento não encontrado.
+            </li>
+            <li>
+              <strong>409</strong> — identificador histórico ambíguo; use o ID individual do documento.
             </li>
             <li>
               <strong>422</strong> — dados inválidos (a resposta traz o array{" "}

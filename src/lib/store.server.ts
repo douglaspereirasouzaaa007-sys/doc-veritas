@@ -10,6 +10,7 @@
 import pg from "pg";
 import { mergeStoreChanges, planImport, countersFor, canonical } from "./backup.shared";
 import { createHash } from "node:crypto";
+import { allocateDocumentIdentifiers, findDocumentMatches } from "./document-identifiers";
 
 const { Pool } = pg;
 
@@ -175,6 +176,76 @@ export async function writeStore(store: Store): Promise<void> {
     await client.query("ROLLBACK");
     throw error;
   } finally { client.release(); }
+}
+
+/** Reserve identifiers and append in one transaction, including concurrent API/panel requests. */
+export async function createDocumentSafely(input: Omit<DocumentRow, "code" | "token">): Promise<DocumentRow> {
+  const db = await getPool();
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+    const { rows } = await client.query<{ data: Store }>("SELECT data FROM store_state WHERE id=1 FOR UPDATE");
+    if (!rows[0]) throw new Error("Armazenamento não encontrado.");
+    const current = { ...DEFAULT_STORE, ...rows[0].data };
+    if (current.documents.some((row) => row.id === input.id))
+      throw new Error("Identificador de documento já utilizado.");
+    const { code, token, counters } = allocateDocumentIdentifiers(current.documents, current.counters, input.type);
+    const row = { ...input, code, token };
+    await client.query(
+      "UPDATE store_state SET data=jsonb_set(jsonb_set(data, '{documents}', $1::jsonb), '{counters}', $2::jsonb), updated_at=NOW() WHERE id=1",
+      [JSON.stringify([...current.documents, row]), JSON.stringify(counters)],
+    );
+    await client.query("COMMIT");
+    return row;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally { client.release(); }
+}
+
+async function updateStoreAtomically<T>(edit: (store: Store) => T): Promise<T> {
+  const db = await getPool();
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+    const { rows } = await client.query<{ data: Store }>("SELECT data FROM store_state WHERE id=1 FOR UPDATE");
+    if (!rows[0]) throw new Error("Armazenamento não encontrado.");
+    const current = { ...DEFAULT_STORE, ...rows[0].data };
+    const result = edit(current);
+    await client.query("UPDATE store_state SET data=$1::jsonb, updated_at=NOW() WHERE id=1", [JSON.stringify(current)]);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally { client.release(); }
+}
+
+/** Logging simultaneous scans must not cause lost documents or conflicting view counts. */
+export function recordPublicDocumentLookup(reference: string) {
+  return updateStoreAtomically((store) => {
+    const matches = findDocumentMatches(store.documents, reference);
+    if (matches.length > 1) return { row: null, ambiguous: true };
+    const row = matches[0] ?? null;
+    store.verifications.push({
+      id: uuid(), code: reference, document_id: row?.id ?? null,
+      found: Boolean(row), created_at: new Date().toISOString(),
+    });
+    if (row) row.views_count = (row.views_count ?? 0) + 1;
+    return { row, ambiguous: false };
+  });
+}
+
+/** Concurrent calls using the same API key cannot invalidate one another's usage updates. */
+export function recordApiKeyUsage(hash: string) {
+  return updateStoreAtomically((store) => {
+    const row = store.api_keys.find((key) => key.key_hash === hash);
+    if (!row) return { ok: false as const, status: 401, error: "Chave de API inválida." };
+    if (!row.active) return { ok: false as const, status: 403, error: "Chave de API desativada." };
+    row.last_used_at = new Date().toISOString();
+    row.requests_count = (row.requests_count ?? 0) + 1;
+    return { ok: true as const, apiKey: { id: row.id, name: row.name, active: row.active } };
+  });
 }
 
 export function documentFingerprint(documents: DocumentRow[]) {

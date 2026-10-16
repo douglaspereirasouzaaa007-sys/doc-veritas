@@ -191,7 +191,7 @@ function DocumentosPage() {
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-1">
                       <Button asChild variant="ghost" size="icon" title="Ver página pública">
-                        <a href={`/d/${row.code}`} target="_blank" rel="noreferrer">
+                        <a href={`/d/${row.id}`} target="_blank" rel="noreferrer">
                           <ExternalLink className="h-4 w-4" />
                         </a>
                       </Button>

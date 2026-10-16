@@ -2,33 +2,34 @@
 import { z } from "zod";
 import {
   documentInputSchema,
-  generateDocumentCode,
-  normalizeLookup,
   DOCUMENT_STATUSES,
   DOCUMENT_TYPES,
 } from "./documents.shared";
 import { authenticateApiKey, json } from "./api-keys.server";
 import { PUBLIC_SITE_URL } from "./site-url";
-import { readStore, writeStore, nextToken, uuid, type DocumentRow } from "./store.server";
+import { readStore, writeStore, createDocumentSafely, uuid, type DocumentRow } from "./store.server";
+import { documentReference, findDocumentMatches } from "./document-identifiers";
 
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
-function links(row: { token: string; code: string }) {
+function links(row: Pick<DocumentRow, "id" | "token" | "code">) {
   const origin = PUBLIC_SITE_URL;
+  const reference = documentReference(row);
   return {
+    document_id: row.id,
     token: row.token,
     access_code: row.code,
-    verification_url: `${origin}/d/${row.code}`,
+    verification_url: `${origin}/d/${reference}`,
+    access_code_url: `${origin}/d/${row.code}`,
     token_url: `${origin}/d/${row.token}`,
-    qrcode_url: `${origin}/api/public/v1/qrcode/${row.code}`,
-    qrcode_png_url: `${origin}/api/public/v1/qrcode/${row.code}?format=png`,
-    qrcode_svg_url: `${origin}/api/public/v1/qrcode/${row.code}?format=svg`,
+    qrcode_url: `${origin}/api/public/v1/qrcode/${reference}`,
+    qrcode_png_url: `${origin}/api/public/v1/qrcode/${reference}?format=png`,
+    qrcode_svg_url: `${origin}/api/public/v1/qrcode/${reference}?format=svg`,
   };
 }
 
 /** Gera o QR Code em PNG (data URL base64) apontando para a página pública do documento. */
-async function qrcodeDataUrl(code: string): Promise<string | null> {
-  try {
+async function qrcodeDataUrl(code: string): Promise<string> {
     const QRCode = (await import("qrcode")).default;
     return await QRCode.toDataURL(`${PUBLIC_SITE_URL}/d/${code}`, {
       margin: 1,
@@ -37,14 +38,10 @@ async function qrcodeDataUrl(code: string): Promise<string | null> {
       type: "image/png",
       color: { dark: "#000000", light: "#FFFFFF" },
     });
-  } catch {
-    return null;
-  }
 }
 
 function toPublicFields(row: DocumentRow) {
   const {
-    id: _id,
     views_count: _v,
     created_by: _cb,
     api_key_id: _ak,
@@ -140,12 +137,13 @@ export async function createDocument(request: Request, type?: DocumentType) {
     }
   }
 
-  const code = generateDocumentCode();
-  const token = await nextToken(values.type);
-  const row: DocumentRow = {
-    id: uuid(),
-    token,
-    code,
+  const id = uuid();
+  // Generate before insertion: a QR failure must not leave a successful but undisclosed document.
+  let qrcode_base64: string;
+  try { qrcode_base64 = await qrcodeDataUrl(id); }
+  catch { return json({ error: "Não foi possível gerar o QR Code. Nenhum documento foi criado." }, 503); }
+  const input: Omit<DocumentRow, "code" | "token"> = {
+    id,
     type: values.type,
     status: (values.status ?? "valido") as DocumentRow["status"],
     establishment_id: values.establishment_id ?? null,
@@ -170,10 +168,7 @@ export async function createDocument(request: Request, type?: DocumentType) {
     api_key_id: auth.apiKey.id,
   };
 
-  store.documents.push(row);
-  await writeStore(store);
-
-  const qrcode_base64 = await qrcodeDataUrl(code);
+  const row = await createDocumentSafely(input);
   return json({ data: toPublicFields(row), ...links(row), qrcode_base64 }, 201);
 }
 
@@ -182,14 +177,13 @@ export async function getDocument(request: Request, code: string, type?: Documen
   const auth = await authenticateApiKey(request);
   if (!auth.ok) return json({ error: auth.error }, auth.status);
 
-  const lookup = normalizeLookup(code);
   const store = await readStore();
-  let row = store.documents.find((d) => d[lookup.kind] === lookup.value) ?? null;
-  if (type && row && row.type !== type) row = null;
+  const matches = findDocumentMatches(store.documents, code, type);
+  const failure = lookupFailure(matches);
+  if (failure) return failure;
+  const row = matches[0];
 
-  if (!row) return json({ error: "Documento não encontrado.", code: lookup.value }, 404);
-
-  const qrcode_base64 = await qrcodeDataUrl(row.code);
+  const qrcode_base64 = await qrcodeDataUrl(documentReference(row));
   return json({ data: toPublicFields(row), ...links(row), qrcode_base64 });
 }
 
@@ -198,6 +192,15 @@ const patchSchema = z.object({
   body_text: z.string().max(20000).optional(),
   cid: z.string().max(50).optional().nullable(),
 });
+
+function lookupFailure(matches: DocumentRow[]): Response | null {
+  if (!matches.length) return json({ error: "Documento não encontrado." }, 404);
+  if (matches.length > 1) return json({
+    error: "Identificador compartilhado por mais de um documento. Use o ID individual retornado pela listagem.",
+    reason: "ambiguous_identifier",
+  }, 409);
+  return null;
+}
 
 /** PATCH — atualiza status/texto do documento. */
 export async function patchDocument(request: Request, code: string, type?: DocumentType) {
@@ -214,15 +217,14 @@ export async function patchDocument(request: Request, code: string, type?: Docum
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) return json({ error: "Dados inválidos." }, 422);
 
-  const lookup = normalizeLookup(code);
   const store = await readStore();
-  const idx = store.documents.findIndex((d) => d[lookup.kind] === lookup.value);
-  if (idx === -1 || (type && store.documents[idx].type !== type))
-    return json({ error: "Documento não encontrado." }, 404);
-
-  Object.assign(store.documents[idx], parsed.data);
+  const matches = findDocumentMatches(store.documents, code, type);
+  const failure = lookupFailure(matches);
+  if (failure) return failure;
+  const row = matches[0];
+  Object.assign(row, parsed.data);
   await writeStore(store);
-  return json({ data: toPublicFields(store.documents[idx]) });
+  return json({ data: toPublicFields(row) });
 }
 
 /** DELETE — revoga o documento (mantém histórico). */
@@ -230,14 +232,12 @@ export async function revokeDocument(request: Request, code: string, type?: Docu
   const auth = await authenticateApiKey(request);
   if (!auth.ok) return json({ error: auth.error }, auth.status);
 
-  const lookup = normalizeLookup(code);
   const store = await readStore();
-  const idx = store.documents.findIndex((d) => d[lookup.kind] === lookup.value);
-  if (idx === -1 || (type && store.documents[idx].type !== type))
-    return json({ error: "Documento não encontrado." }, 404);
-
-  store.documents[idx].status = "revogado";
+  const matches = findDocumentMatches(store.documents, code, type);
+  const failure = lookupFailure(matches);
+  if (failure) return failure;
+  const row = matches[0];
+  row.status = "revogado";
   await writeStore(store);
-  const row = store.documents[idx];
   return json({ ok: true, status: "revogado", token: row.token, access_code: row.code });
 }

@@ -207,12 +207,16 @@ export function normalizeToken(value: string): string {
 }
 
 /** Aceita token (ATE-12345) ou código de acesso (6 dígitos) e devolve a chave de busca canônica. */
-export function normalizeLookup(value: string): { kind: "token" | "code"; value: string } {
+export function normalizeLookup(value: string): { kind: "id" | "token" | "code"; value: string } {
+  const trimmed = value.trim();
+  if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmed))
+    return { kind: "id", value: trimmed.toLowerCase() };
   if (isDocumentToken(value)) return { kind: "token", value: normalizeToken(value) };
   return { kind: "code", value: normalizeCode(value) };
 }
 
 export type PublicDocument = {
+  id: string;
   token: string;
   code: string;
   type: string;

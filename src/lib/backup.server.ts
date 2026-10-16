@@ -3,6 +3,7 @@ import { zipSync, unzipSync, strToU8 } from "fflate";
 import QRCode from "qrcode";
 import { MAX_BACKUP_BYTES, MAX_DOCUMENT_BYTES, parseBackupDocuments, documentSummary } from "./backup.shared";
 import type { DocumentRow } from "./store.server";
+import { documentReference } from "./document-identifiers";
 
 const hash = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
 const decode = (bytes: Uint8Array) => new TextDecoder("utf-8", { fatal: true }).decode(bytes);
@@ -63,7 +64,7 @@ export async function createBackupZip(documents: DocumentRow[], domain: string) 
   };
   for (const [i, doc] of documents.entries()) {
     const stem = `${String(i + 1).padStart(5, "0")}-${doc.id.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
-    const url = `${manifest.domain}/d/${doc.code}`;
+    const url = `${manifest.domain}/d/${documentReference(doc)}`;
     const options = { width: 512, margin: 1, errorCorrectionLevel: "M" as const, color: { dark: "#000000", light: "#FFFFFF" } };
     const png = await QRCode.toBuffer(url, { ...options, type: "png" });
     const svg = strToU8(await QRCode.toString(url, { ...options, type: "svg" }));

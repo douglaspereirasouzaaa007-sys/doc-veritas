@@ -2,12 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import {
   documentInputSchema,
-  generateDocumentCode,
   DOCUMENT_STATUSES,
   DOCUMENT_TYPES,
 } from "./documents.shared";
 import { requireLocalAuth } from "./auth.functions";
-import { readStore, writeStore, nextToken, uuid, type DocumentRow } from "./store.server";
+import { readStore, writeStore, createDocumentSafely, uuid, type DocumentRow } from "./store.server";
 import { randomApiKey, hashApiKey } from "./api-keys.server";
 
 export const getMe = createServerFn({ method: "GET" })
@@ -161,12 +160,8 @@ export const saveDocument = createServerFn({ method: "POST" })
       return { id: row.id, code: row.code, token: row.token };
     }
 
-    const code = generateDocumentCode();
-    const token = await nextToken(payload.type);
-    const row: DocumentRow = {
+    const input: Omit<DocumentRow, "code" | "token"> = {
       id: uuid(),
-      token,
-      code,
       type: payload.type,
       status: (payload.status ?? "valido") as DocumentRow["status"],
       establishment_id: payload.establishment_id ?? null,
@@ -190,8 +185,7 @@ export const saveDocument = createServerFn({ method: "POST" })
       created_at: new Date().toISOString(),
       created_by: "owner",
     };
-    store.documents.push(row);
-    await writeStore(store);
+    const row = await createDocumentSafely(input);
     return { id: row.id, code: row.code, token: row.token };
   });
 

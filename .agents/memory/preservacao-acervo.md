@@ -20,3 +20,9 @@ Backups devem aceitar datas de emissão legadas sem convertê-las. Identificador
 **Why:** A prioridade é conservar o conteúdo médico e os links distribuídos. Normalizar datas ou renumerar identificadores durante uma restauração mudaria o acervo original.
 
 **How to apply:** Separar restauração fiel de correção de dados históricos. Não apresentar uma importação bem-sucedida como garantia de que links ambíguos foram resolvidos.
+
+Identificadores históricos repetidos não devem selecionar o primeiro documento encontrado. Oferecer um link individual pelo ID, mantendo os identificadores originais; um QR antigo com endereço compartilhado exige orientação do emissor e substituição para acesso direto.
+
+**Why:** Dois QR Codes com o mesmo conteúdo não permitem inferir qual registro clínico era pretendido. Escolher silenciosamente um paciente pode expor o documento errado.
+
+**How to apply:** Bloquear consultas ambíguas sem revelar dados clínicos, preservar os registros e usar links individuais em novas imagens e exportações. Não prometer que QR Codes antigos ambíguos foram corrigidos automaticamente.

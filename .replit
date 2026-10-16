@@ -36,7 +36,7 @@ externalPort = 80
 
 [deployment]
 deploymentTarget = "vm"
-run = ["sh", "-c", "NITRO_PORT=5000 node .output/server/index.mjs"]
+run = ["sh", "-c", "NITRO_PORT=5000 bun .output/server/index.mjs"]
 build = ["bun", "run", "build"]
 ignorePorts = false
 
