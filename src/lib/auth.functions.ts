@@ -61,6 +61,7 @@ async function setSessionCookie(userId: string) {
   setCookie(COOKIE_NAME, token, {
     path: "/",
     httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: Math.floor(SESSION_TTL_MS / 1000),
   });
@@ -79,39 +80,41 @@ export const register = createServerFn({ method: "POST" })
   .validator((data: unknown) =>
     z
       .object({
-        email: z.string().email("E-mail inválido."),
+        email: z.string().trim().email("E-mail inválido."),
         password: z.string().min(6, "Senha deve ter ao menos 6 caracteres."),
       })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    const { getOwner, saveOwner } = await import("./store.server");
-    if ((await getOwner()) !== null) {
+    if (!process.env.SESSION_SECRET) {
+      throw new Error("A configuração segura de sessão está ausente. Nenhum cadastro foi criado.");
+    }
+    const { registerOwner } = await import("./store.server");
+    const passwordHash = await hashPassword(data.password);
+    const registered = await registerOwner({
+      email: data.email.toLowerCase(),
+      passwordHash,
+      registeredAt: new Date().toISOString(),
+    });
+    if (!registered) {
       throw new Error("Cadastro encerrado. O proprietário já foi registrado.");
     }
-    const passwordHash = await hashPassword(data.password);
-    await saveOwner({ email: data.email, passwordHash, registeredAt: new Date().toISOString() });
     await setSessionCookie("owner");
     return { ok: true };
   });
 
 export const signIn = createServerFn({ method: "POST" })
   .validator((data: unknown) =>
-    z.object({ email: z.string().email(), password: z.string().min(1) }).parse(data),
+    z.object({ email: z.string().trim().email(), password: z.string().min(1) }).parse(data),
   )
   .handler(async ({ data }) => {
     const { getOwner } = await import("./store.server");
     const owner = await getOwner();
 
-    let authenticated = false;
-    if (owner !== null) {
-      authenticated =
-        owner.email === data.email && (await verifyPassword(data.password, owner.passwordHash));
-    } else {
-      const expectedEmail = process.env.OWNER_EMAIL ?? "admin@localhost";
-      const expectedPassword = process.env.OWNER_PASSWORD ?? "admin1234";
-      authenticated = data.email === expectedEmail && data.password === expectedPassword;
-    }
+    const authenticated =
+      owner !== null &&
+      owner.email.toLowerCase() === data.email.toLowerCase() &&
+      (await verifyPassword(data.password, owner.passwordHash));
 
     if (!authenticated) throw new Error("E-mail ou senha incorretos.");
     await setSessionCookie("owner");

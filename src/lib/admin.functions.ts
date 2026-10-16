@@ -13,7 +13,10 @@ import { randomApiKey, hashApiKey } from "./api-keys.server";
 export const getMe = createServerFn({ method: "GET" })
   .middleware([requireLocalAuth])
   .handler(async () => {
-    return { profile: { full_name: "Proprietário", email: process.env.OWNER_EMAIL ?? "admin@localhost" }, isAdmin: true };
+    const { getOwner } = await import("./store.server");
+    const owner = await getOwner();
+    if (!owner) throw new Error("Cadastro do proprietário não encontrado.");
+    return { profile: { full_name: "Proprietário", email: owner.email }, isAdmin: true };
   });
 
 export const getStats = createServerFn({ method: "GET" })

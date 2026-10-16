@@ -218,15 +218,19 @@ export async function getOwner(): Promise<OwnerRow | null> {
   return res.rows[0].owner ?? null;
 }
 
-export async function saveOwner(owner: OwnerRow): Promise<void> {
+/** Atomically claims the single owner slot; concurrent signups cannot replace the first owner. */
+export async function registerOwner(owner: OwnerRow): Promise<boolean> {
   const db = await getPool();
-  await db.query(
+  const result = await db.query(
     `UPDATE store_state
-     SET data = jsonb_set(data, '{owner}', $1::jsonb),
+     SET data = jsonb_set(data, '{owner}', $1::jsonb, true),
          updated_at = NOW()
-     WHERE id = 1`,
+     WHERE id = 1
+       AND (data->'owner' IS NULL OR data->'owner' = 'null'::jsonb)
+     RETURNING id`,
     [JSON.stringify(owner)],
   );
+  return result.rowCount === 1;
 }
 
 // ── nextToken — atômico no banco para evitar duplicatas ───────────────────────

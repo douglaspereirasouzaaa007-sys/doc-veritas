@@ -11,7 +11,8 @@ const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 // ── HMAC helpers ──────────────────────────────────────────────────────────────
 
 async function hmacSign(data: string): Promise<string> {
-  const secret = process.env.SESSION_SECRET ?? "local-dev-secret-please-change";
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) throw new Error("SESSION_SECRET não configurado; sessões foram desativadas.");
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),

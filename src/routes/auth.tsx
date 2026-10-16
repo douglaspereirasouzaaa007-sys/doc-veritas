@@ -19,7 +19,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"loading" | "login" | "register">("loading");
+  const [mode, setMode] = useState<"loading" | "login" | "register" | "error">("loading");
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,10 +31,15 @@ function AuthPage() {
 
   useEffect(() => {
     checkSession({}).then(({ loggedIn }) => {
-      if (loggedIn) { navigate({ to: "/painel" }); return; }
+      if (loggedIn) {
+        navigate({ to: "/painel" });
+        return;
+      }
       checkOwner({}).then(({ registered }) => {
         setMode(registered ? "login" : "register");
       });
+    }).catch(() => {
+      setMode("error");
     });
   }, [navigate, checkSession, checkOwner]);
 
@@ -59,6 +64,27 @@ function AuthPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-primary">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-white border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (mode === "error") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-primary px-4">
+        <div
+          role="alert"
+          className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl"
+        >
+          <h1 className="font-display text-2xl font-semibold text-primary">
+            Não foi possível verificar o acesso
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Confira a conexão com o banco de dados e tente novamente. Nenhum cadastro foi alterado.
+          </p>
+          <Button className="mt-6 w-full" size="lg" onClick={() => window.location.reload()}>
+            Tentar novamente
+          </Button>
+        </div>
       </div>
     );
   }
@@ -121,7 +147,8 @@ function AuthPage() {
             </Button>
             {isRegister && (
               <p className="text-center text-xs text-muted-foreground">
-                🔒 Cadastro único — após confirmar, novos registros são bloqueados.
+                Cadastro único do proprietário. Não é necessária confirmação por e-mail; após
+                criar a conta, novos cadastros ficam bloqueados.
               </p>
             )}
           </form>

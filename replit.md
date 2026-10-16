@@ -4,9 +4,8 @@ A document verification system for medical certificates, prescriptions, and repo
 
 ## Stack
 
-- **Frontend**: React 19 + TanStack Router (file-based routing)
-- **Backend**: TanStack Start (SSR, server functions)
-- **Database**: Supabase (PostgreSQL + Auth)
+- **Frontend/backend**: React 19 + TanStack Start/Router
+- **Database**: PostgreSQL via `DATABASE_URL`, com estado JSONB persistente
 - **Styling**: Tailwind CSS v4 + shadcn/ui
 - **Runtime**: Bun
 
@@ -17,25 +16,21 @@ bun install
 bun run dev
 ```
 
-The dev server starts on port 5000.
+The development server starts on port 5000. Production runs on a Replit VM at port 5000.
 
 ## Project structure
 
 - `src/routes/` — file-based pages (TanStack Router)
 - `src/components/` — shared UI components
-- `src/integrations/supabase/` — Supabase client and auth helpers
-- `supabase/migrations/` — database schema migrations
+- `src/lib/store.server.ts` — PostgreSQL-backed owner, documents, QR references, and application state
+- `src/lib/backup.*` — validated document backup and append-only restoration
 
-## Acesso ao painel do proprietário
+## Acesso do proprietário
 
-- **E-mail:** `admin@localhost`
-- **Senha:** `admin1234`
-
-Para alterar as credenciais, defina as variáveis de ambiente:
-- `OWNER_EMAIL` — e-mail do proprietário
-- `OWNER_PASSWORD` — senha do proprietário
-
-Os documentos são armazenados em `data/store.json` na raiz do projeto (JSON local, sem banco de dados).
+The first successful signup becomes the sole owner. No email confirmation is required.
+After that, signup is permanently closed; sign in with the email and password used for the first signup.
+The owner account is stored in PostgreSQL. `SESSION_SECRET` must be configured to sign sessions.
+There are no default admin credentials.
 
 ## User preferences
 
