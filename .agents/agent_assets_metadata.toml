@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "ypoSCCISlMzkQFvSi4__p"
+uri = "file://generated-artifacts/backup-memed-4099-documentos.zip"
+type = "unspecified"
+title = "Backup — 4.099 documentos e QR Codes"
+description = "ZIP privado com documentos completos em JSON e CSV, 4.099 PNGs, 4.099 SVGs, links, conferência de integridade e guia para restauração no Remix. Contém dados pessoais e médicos; armazene com acesso restrito."
+logical_id = "050f682d-8cdc-410f-9337-4c934562b4eb"
+content_hash = "sha256:b4feac7b1b7218016f13a4546a40acbe6bc5c914f82f02086d781625db924091"
+size = 10568409
+mtime_ms = 1792181123367
+storage_uri = "gcs://replit-rams-assets-janeway/rams/assets/repl:1b6a4d36-3e53-4dee-ba87-86c9230655d5/050f682d-8cdc-410f-9337-4c934562b4eb/d6cd7a23-ba26-4634-9ae8-655d48533833"
+storage_version_token = "1792181132936884"
+content_type = "application/octet-stream"
