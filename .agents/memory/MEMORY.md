@@ -2,3 +2,4 @@
 - [Deployment config](deployment-config.md) — target vm, porta 5000 via NITRO_PORT, nunca cloudrun (efêmero)
 - [Preservação do acervo](preservacao-acervo.md) — correções devem preservar documentos, QR Codes e links já emitidos.
 - [Cadastro do proprietário](cadastro-proprietario.md) — primeiro cadastro em base sem dono é único, vira proprietário e não exige confirmação de e-mail.
+- [Dependency security gate](dependency-security-gate.md) — falhas críticas do scanner de publicação podem vir de dependências transitivas ainda presas no bun.lock.

@@ -22,6 +22,16 @@ export default defineConfig({
       host: "0.0.0.0",
       strictPort: true,
       allowedHosts: true,
+      watch: {
+        ignored: [
+          "**/.agents/**",
+          "**/.cache/**",
+          "**/.local/**",
+          "**/.tanstack/**",
+          "**/.upm/**",
+          "**/generated-artifacts/**",
+        ],
+      },
     },
   },
 });
