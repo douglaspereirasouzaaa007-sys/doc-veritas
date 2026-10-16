@@ -1,2 +1,3 @@
 - [PostgreSQL store](pg-store.md) — dados persistem via tabela store_state (JSONB), não mais arquivo JSON; todas as funções são async
 - [Deployment config](deployment-config.md) — target vm, porta 5000 via NITRO_PORT, nunca cloudrun (efêmero)
+- [Preservação do acervo](preservacao-acervo.md) — correções devem preservar documentos, QR Codes e links já emitidos.
