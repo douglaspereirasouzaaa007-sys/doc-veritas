@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { FileText, Home, KeyRound, Building2, LogOut, ShieldCheck } from "lucide-react";
+import { FileText, Home, KeyRound, Building2, LogOut, ShieldCheck, Archive } from "lucide-react";
 import { getSession, signOut } from "@/lib/auth.functions";
 import { Logo } from "@/components/site/Logo";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ const nav: { to: string; label: string; icon: typeof Home; exact?: boolean }[] =
   { to: "/painel/estabelecimentos", label: "Estabelecimentos", icon: Building2 },
   { to: "/painel/api", label: "API e chaves", icon: KeyRound },
   { to: "/painel/verificacoes", label: "Verificações", icon: ShieldCheck },
+  { to: "/painel/backup", label: "Backup e importação", icon: Archive },
 ];
 
 function PainelLayout() {

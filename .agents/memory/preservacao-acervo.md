@@ -14,3 +14,9 @@ O usuário confirmou que o Remix continuará no mesmo domínio, `memedsolutions.
 **Why:** O usuário confirmou o domínio e o escopo da cópia.
 
 **How to apply:** Não presumir que Remix copia o banco. Preservar os endereços existentes e conferir a restauração antes da transferência do domínio.
+
+Backups devem aceitar datas de emissão legadas sem convertê-las. Identificadores repetidos dentro de um backup histórico podem ser preservados mediante aviso explícito; colisões com outros documentos no destino devem bloquear a restauração.
+
+**Why:** A prioridade é conservar o conteúdo médico e os links distribuídos. Normalizar datas ou renumerar identificadores durante uma restauração mudaria o acervo original.
+
+**How to apply:** Separar restauração fiel de correção de dados históricos. Não apresentar uma importação bem-sucedida como garantia de que links ambíguos foram resolvidos.

@@ -8,6 +8,8 @@
  * Todas as funções são async — use `await` nos callers.
  */
 import pg from "pg";
+import { mergeStoreChanges, planImport, countersFor, canonical } from "./backup.shared";
+import { createHash } from "node:crypto";
 
 const { Pool } = pg;
 
@@ -144,22 +146,65 @@ async function getPool(): Promise<pg.Pool> {
 }
 
 // ── readStore / writeStore ────────────────────────────────────────────────────
+const snapshots = new WeakMap<Store, Store>();
 
 export async function readStore(): Promise<Store> {
   const db = await getPool();
   const res = await db.query<{ data: Store }>("SELECT data FROM store_state WHERE id = 1");
   if (res.rows.length === 0) return structuredClone(DEFAULT_STORE);
-  return { ...DEFAULT_STORE, ...res.rows[0].data };
+  const store = { ...DEFAULT_STORE, ...res.rows[0].data };
+  snapshots.set(store, structuredClone(store));
+  return store;
 }
 
 export async function writeStore(store: Store): Promise<void> {
+  const before = snapshots.get(store);
+  if (!before) throw new Error("Gravação sem leitura de origem bloqueada.");
   const db = await getPool();
-  await db.query(
-    `INSERT INTO store_state (id, data, updated_at)
-     VALUES (1, $1::jsonb, NOW())
-     ON CONFLICT (id) DO UPDATE SET data = $1::jsonb, updated_at = NOW()`,
-    [JSON.stringify(store)],
-  );
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+    const { rows } = await client.query<{ data: Store }>("SELECT data FROM store_state WHERE id=1 FOR UPDATE");
+    if (!rows[0]) throw new Error("Armazenamento não encontrado.");
+    const merged = mergeStoreChanges(before, store, { ...DEFAULT_STORE, ...rows[0].data });
+    await client.query("UPDATE store_state SET data=$1::jsonb, updated_at=NOW() WHERE id=1", [JSON.stringify(merged)]);
+    await client.query("COMMIT");
+    Object.assign(store, merged);
+    snapshots.set(store, structuredClone(merged));
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally { client.release(); }
+}
+
+export function documentFingerprint(documents: DocumentRow[]) {
+  return createHash("sha256").update(canonical(documents)).digest("hex");
+}
+
+/** Append-only restoration, rechecked under the same database row lock as all writes. */
+export async function importDocumentsSafely(incoming: DocumentRow[], expectedDestination: string) {
+  const db = await getPool();
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+    const { rows } = await client.query<{ data: Store }>("SELECT data FROM store_state WHERE id=1 FOR UPDATE");
+    if (!rows[0]) throw new Error("Armazenamento não encontrado.");
+    const current = { ...DEFAULT_STORE, ...rows[0].data };
+    if (documentFingerprint(current.documents) !== expectedDestination)
+      throw new Error("A base mudou após a conferência. Confira o arquivo novamente antes de importar.");
+    const plan = planImport(current.documents, incoming);
+    const documents = [...current.documents, ...plan.additions];
+    const counters = countersFor(documents, current.counters);
+    await client.query(
+      "UPDATE store_state SET data=jsonb_set(jsonb_set(data, '{documents}', $1::jsonb), '{counters}', $2::jsonb), updated_at=NOW() WHERE id=1",
+      [JSON.stringify(documents), JSON.stringify(counters)],
+    );
+    await client.query("COMMIT");
+    return { imported: plan.additions.length, skipped: plan.skipped, total: documents.length };
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally { client.release(); }
 }
 
 // ── Owner ─────────────────────────────────────────────────────────────────────
